@@ -30,6 +30,8 @@ function vazio() {
     notas: {},
     // duplaId -> [{ id, tipo: "etapa" | "campos", mudancas: [{ campo, de, para }], autor, em }]
     historico: {},
+    // duplaId -> { nome, telefone, email, documento, cidade, estado } (dados do afilhado)
+    pessoas: {},
   };
 }
 
@@ -169,6 +171,20 @@ const ACOES = {
     }));
     registrarEvento(d, duplaId, "campos", limpas, quem);
   },
+  salvarPessoa(d, { duplaId, pessoa }, quem) {
+    d.pessoas ??= {};
+    const antes = d.pessoas[duplaId] ?? {};
+    const depois = {};
+    for (const [chave, rotulo] of Object.entries(CAMPOS_PESSOA)) {
+      const v = String(pessoa?.[chave] ?? antes[chave] ?? "").trim().slice(0, 200);
+      if (v) depois[chave] = v;
+    }
+    d.pessoas[duplaId] = depois;
+    const mudancas = Object.entries(CAMPOS_PESSOA)
+      .filter(([chave]) => (antes[chave] ?? "") !== (depois[chave] ?? ""))
+      .map(([chave, rotulo]) => ({ campo: rotulo, de: antes[chave] || "—", para: depois[chave] || "—" }));
+    registrarEvento(d, duplaId, "campos", mudancas, quem);
+  },
   fixarNota(d, { duplaId, notaId, fixada }) {
     const nota = (d.notas[duplaId] ?? []).find((n) => n.id === notaId);
     if (!nota) throw new ErroUso("Anotação não encontrada");
@@ -196,7 +212,17 @@ const ACOES = {
     delete d.posicoes[duplaId];
     delete d.notas[duplaId];
     delete d.historico?.[duplaId];
+    delete d.pessoas?.[duplaId];
   },
+};
+
+const CAMPOS_PESSOA = {
+  nome: "Nome completo",
+  telefone: "Telefone / WhatsApp",
+  email: "E-mail",
+  documento: "CPF / CNPJ",
+  cidade: "Cidade",
+  estado: "Estado",
 };
 
 function registrarEvento(d, duplaId, tipo, mudancas, quem) {

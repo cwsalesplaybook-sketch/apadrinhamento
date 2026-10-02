@@ -32,6 +32,7 @@ import {
   type Dupla,
 } from "@/lib/apadrinhamento";
 import {
+  CAMPOS_PESSOA,
   dataHoraBR,
   posicaoDa,
   useAcaoRadar,
@@ -371,7 +372,9 @@ function PainelDupla({
   const salvar = useMutation({
     mutationFn: async (d: Rascunho) => {
       const { id, created_at: _criado, ...campos } = Object.fromEntries(
-        Object.entries(d).map(([k, v]) => [k, v === "" ? null : v]),
+        Object.entries(d)
+          .filter(([k]) => !k.startsWith("pessoa_"))
+          .map(([k, v]) => [k, v === "" ? null : v]),
       ) as Rascunho;
       if (id) {
         const res = await supabase.from("duplas").update(campos).eq("id", id);
@@ -382,10 +385,12 @@ function PainelDupla({
       if (res.error) throw res.error;
       return res.data.id as string;
     },
-    onSuccess: (id) => {
+    onSuccess: async (id, enviado) => {
       qc.invalidateQueries({ queryKey: ["duplas"] });
       if (nova && pipelineSel && etapaSel)
-        acao.mutate({ acao: "mover", duplaId: id, pipelineId: pipelineSel.id, etapaId: etapaSel.id });
+        await acao.mutateAsync({ acao: "mover", duplaId: id, pipelineId: pipelineSel.id, etapaId: etapaSel.id }).catch(() => {});
+      const pessoa = Object.fromEntries(CAMPOS_PESSOA.map((c) => [c.chave, String(enviado[`pessoa_${c.chave}`] ?? "")]));
+      if (nova && Object.values(pessoa).some(Boolean)) acao.mutate({ acao: "salvarPessoa", duplaId: id, pessoa });
       toast.success(nova ? "Dupla criada" : "Dados salvos");
       if (nova) fechar();
     },
@@ -578,6 +583,12 @@ function FormDupla({
           </select>
         </div>
       </div>
+      {!rascunho.id && (
+        <fieldset className="grid gap-3 sm:grid-cols-2">
+          <legend className="rotulo mb-2 text-xs text-primary">Pessoa (afilhado)</legend>
+          {CAMPOS_PESSOA.map((c) => campo(`pessoa_${c.chave}`, c.rotulo, c.tipo))}
+        </fieldset>
+      )}
       <fieldset className="grid gap-3 sm:grid-cols-4">
         <legend className="rotulo mb-2 text-xs text-primary">Fluxo ABC — datas das reuniões</legend>
         {campo("reuniao1", "Reunião 1", "date")}

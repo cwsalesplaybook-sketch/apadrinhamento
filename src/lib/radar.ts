@@ -38,11 +38,31 @@ export interface Evento {
   em: string;
 }
 
+/** Dados da pessoa (afilhado) — o banco das duplas não tem essas colunas. */
+export const CAMPOS_PESSOA = [
+  { chave: "nome", rotulo: "Nome completo", tipo: "text" },
+  { chave: "telefone", rotulo: "Telefone / WhatsApp", tipo: "tel" },
+  { chave: "email", rotulo: "E-mail", tipo: "email" },
+  { chave: "documento", rotulo: "CPF / CNPJ", tipo: "text" },
+  { chave: "cidade", rotulo: "Cidade", tipo: "text" },
+  { chave: "estado", rotulo: "Estado", tipo: "text" },
+] as const;
+
+export type Pessoa = Partial<Record<(typeof CAMPOS_PESSOA)[number]["chave"], string>>;
+
+/** Link do WhatsApp a partir do telefone (assume Brasil se vier sem DDI). */
+export function linkWhatsApp(telefone: string) {
+  const n = telefone.replace(/\D/g, "");
+  if (!n) return null;
+  return `https://wa.me/${n.length <= 11 ? "55" + n : n}`;
+}
+
 export interface DadosRadar {
   pipelines: Pipeline[];
   posicoes: Record<string, { pipelineId: string; etapaId: string; desde?: string }>;
   notas: Record<string, Nota[]>;
   historico?: Record<string, Evento[]>;
+  pessoas?: Record<string, Pessoa>;
 }
 
 type Acao =
@@ -51,6 +71,7 @@ type Acao =
   | { acao: "nota"; duplaId: string; texto: string }
   | { acao: "editarNota"; duplaId: string; notaId: string; texto: string }
   | { acao: "apagarNota"; duplaId: string; notaId: string }
+  | { acao: "salvarPessoa"; duplaId: string; pessoa: Pessoa }
   | { acao: "fixarNota"; duplaId: string; notaId: string; fixada: boolean }
   | { acao: "registrar"; duplaId: string; mudancas: Mudanca[] }
   | { acao: "apagarDupla"; duplaId: string };

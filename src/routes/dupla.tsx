@@ -6,6 +6,8 @@ import {
   ChevronDown,
   ChevronUp,
   History,
+  Mail,
+  MessageCircle,
   MoreHorizontal,
   Pencil,
   Pin,
@@ -22,13 +24,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { STATUS_LABEL, dataBR, diasDesde, type Dupla, type StatusDupla } from "@/lib/apadrinhamento";
-import { dataHoraBR, posicaoDa, useAcaoRadar, useRadar, type Evento, type Mudanca, type Nota } from "@/lib/radar";
+import {
+  CAMPOS_PESSOA,
+  dataHoraBR,
+  linkWhatsApp,
+  posicaoDa,
+  useAcaoRadar,
+  useRadar,
+  type Evento,
+  type Mudanca,
+  type Nota,
+  type Pessoa,
+} from "@/lib/radar";
 
 /* ---------- campos da coluna da esquerda ---------- */
 
-type Tipo = "text" | "number" | "date" | "status" | "longo";
+type Tipo = "text" | "number" | "date" | "status" | "longo" | "tel" | "email";
 interface DefCampo {
-  nome: keyof Dupla;
+  nome: string;
   rotulo: string;
   tipo: Tipo;
 }
@@ -230,7 +243,12 @@ export function DuplaPage() {
       )}
 
       <div className="mt-5 grid items-start gap-5 lg:grid-cols-[360px_1fr]">
-        <ColunaCampos dupla={dupla} salvar={(campos) => salvarCampos.mutate(campos)} />
+        <ColunaCampos
+          dupla={dupla}
+          salvar={(campos) => salvarCampos.mutate(campos)}
+          pessoa={radar.data?.pessoas?.[id] ?? {}}
+          salvarPessoa={(pessoa) => acao.mutate({ acao: "salvarPessoa", duplaId: id, pessoa })}
+        />
         <div className="min-w-0 space-y-6">
           <Composer duplaId={id} />
           <Foco duplaId={id} notas={radar.data?.notas[id] ?? []} />
@@ -272,7 +290,22 @@ function MenuMais({ aoExcluir }: { aoExcluir: () => void }) {
 
 /* ---------- coluna da esquerda: campos editáveis ---------- */
 
-function ColunaCampos({ dupla, salvar }: { dupla: Dupla; salvar: (campos: Partial<Dupla>) => void }) {
+const GRUPO_PESSOA = {
+  titulo: "Pessoa (afilhado)",
+  campos: CAMPOS_PESSOA.map((c) => ({ nome: c.chave, rotulo: c.rotulo, tipo: c.tipo as Tipo })),
+};
+
+function ColunaCampos({
+  dupla,
+  salvar,
+  pessoa,
+  salvarPessoa,
+}: {
+  dupla: Dupla;
+  salvar: (campos: Partial<Dupla>) => void;
+  pessoa: Pessoa;
+  salvarPessoa: (p: Pessoa) => void;
+}) {
   const [filtro, setFiltro] = useState("");
   const [fechados, setFechados] = useState<Record<string, boolean>>({});
   const f = filtro.trim().toLowerCase();
@@ -290,7 +323,8 @@ function ColunaCampos({ dupla, salvar }: { dupla: Dupla; salvar: (campos: Partia
           />
         </label>
       </div>
-      {GRUPOS.map((g) => {
+      {[GRUPOS[0], GRUPO_PESSOA, ...GRUPOS.slice(1)].map((g) => {
+        const ehPessoa = g === GRUPO_PESSOA;
         const campos = g.campos.filter((c) => !f || c.rotulo.toLowerCase().includes(f));
         if (!campos.length) return null;
         const fechado = fechados[g.titulo] && !f;
@@ -306,7 +340,14 @@ function ColunaCampos({ dupla, salvar }: { dupla: Dupla; salvar: (campos: Partia
             {!fechado && (
               <dl className="pb-2">
                 {campos.map((c) => (
-                  <CampoInline key={c.nome} def={c} valor={dupla[c.nome]} salvar={(v) => salvar({ [c.nome]: v } as Partial<Dupla>)} />
+                  <CampoInline
+                    key={c.nome}
+                    def={c}
+                    valor={ehPessoa ? pessoa[c.nome as keyof Pessoa] : dupla[c.nome as keyof Dupla]}
+                    salvar={(v) =>
+                      ehPessoa ? salvarPessoa({ [c.nome]: String(v ?? "") }) : salvar({ [c.nome]: v } as Partial<Dupla>)
+                    }
+                  />
                 ))}
               </dl>
             )}
@@ -382,6 +423,16 @@ function CampoInline({ def, valor, salvar }: { def: DefCampo; valor: unknown; sa
             <span className={cn("min-w-0 break-words", longo && "whitespace-pre-wrap")}>{exibir(def.tipo, valor)}</span>
             <Pencil className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100" />
           </button>
+        )}
+        {!editando && !!valor && def.tipo === "tel" && linkWhatsApp(String(valor)) && (
+          <a href={linkWhatsApp(String(valor))!} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+            <MessageCircle className="h-3.5 w-3.5" /> Abrir WhatsApp
+          </a>
+        )}
+        {!editando && !!valor && def.tipo === "email" && (
+          <a href={`mailto:${String(valor)}`} className="ml-2 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+            <Mail className="h-3.5 w-3.5" /> Enviar e-mail
+          </a>
         )}
       </dd>
     </div>
