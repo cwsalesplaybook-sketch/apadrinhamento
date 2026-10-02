@@ -267,15 +267,6 @@
       0 1px 0 rgba(255, 255, 255, 0.18) inset,
       0 14px 24px -14px rgba(0, 0, 0, 0.6);
   }
-  /* Ícone 3D: traço em degradê (url(#icone-3d)) + "extrusão" com sombras empilhadas */
-  .menu-3d-icone {
-    filter: drop-shadow(0 1px 0 #9a74e0) drop-shadow(0 1px 0 #7e57c9) drop-shadow(0 1px 0 #6841b0)
-      drop-shadow(0 5px 5px rgba(8, 0, 30, 0.55));
-  }
-  .menu-3d-ativo .menu-3d-icone {
-    filter: drop-shadow(0 1px 0 #d9c2ff) drop-shadow(0 1px 0 #b994f5) drop-shadow(0 1px 0 #9a6fe6)
-      drop-shadow(0 5px 6px rgba(40, 0, 90, 0.55));
-  }
   .menu-3d-item {
     transition:
       background-color 0.15s,
