@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/routes/auth";
 import { PainelPage } from "@/routes/painel";
 import { DuplasPage } from "@/routes/duplas";
+import { DuplaPage } from "@/routes/dupla";
 import { BasePage } from "@/routes/base";
 import { WeekliesPage } from "@/routes/weeklies";
 import { WeeklyPage } from "@/routes/weekly";
@@ -76,6 +77,7 @@ const authenticatedRoute = createRoute({
 
 const painelRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/painel", component: PainelPage });
 const duplasRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas", component: DuplasPage });
+const duplaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas/$id", component: DuplaPage });
 const baseRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/base", component: BasePage });
 const weekliesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
@@ -91,7 +93,7 @@ const weeklyRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([painelRoute, duplasRoute, baseRoute, weekliesRoute, weeklyRoute]),
+  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, baseRoute, weekliesRoute, weeklyRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });

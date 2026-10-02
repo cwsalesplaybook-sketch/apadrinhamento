@@ -387,3 +387,20 @@
     box-shadow: 0 0 0 4px rgba(165, 67, 250, 0.15);
   }
 }
+
+/* Barra de etapas em setas, como no topo do negócio no Pipedrive */
+@layer components {
+  .etapa-seta {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+    margin-right: -6px;
+  }
+  .etapa-seta:first-child {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+    border-radius: 10px 0 0 10px;
+  }
+  .etapa-seta:last-child {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%);
+    border-radius: 0 10px 10px 0;
+    margin-right: 0;
+  }
+}

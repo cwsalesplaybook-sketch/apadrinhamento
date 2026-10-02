@@ -21,12 +21,28 @@ export interface Nota {
   autor: string;
   criadoEm: string;
   editadoEm?: string;
+  fixada?: boolean;
+}
+
+export interface Mudanca {
+  campo: string;
+  de: string;
+  para: string;
+}
+
+export interface Evento {
+  id: string;
+  tipo: "etapa" | "campos";
+  mudancas: Mudanca[];
+  autor: string;
+  em: string;
 }
 
 export interface DadosRadar {
   pipelines: Pipeline[];
-  posicoes: Record<string, { pipelineId: string; etapaId: string }>;
+  posicoes: Record<string, { pipelineId: string; etapaId: string; desde?: string }>;
   notas: Record<string, Nota[]>;
+  historico?: Record<string, Evento[]>;
 }
 
 type Acao =
@@ -35,6 +51,8 @@ type Acao =
   | { acao: "nota"; duplaId: string; texto: string }
   | { acao: "editarNota"; duplaId: string; notaId: string; texto: string }
   | { acao: "apagarNota"; duplaId: string; notaId: string }
+  | { acao: "fixarNota"; duplaId: string; notaId: string; fixada: boolean }
+  | { acao: "registrar"; duplaId: string; mudancas: Mudanca[] }
   | { acao: "apagarDupla"; duplaId: string };
 
 async function chamar<T>(init?: RequestInit): Promise<T> {
@@ -72,7 +90,10 @@ export function useAcaoRadar() {
       if (antes)
         qc.setQueryData<DadosRadar>(["radar"], {
           ...antes,
-          posicoes: { ...antes.posicoes, [acao.duplaId]: { pipelineId: acao.pipelineId, etapaId: acao.etapaId } },
+          posicoes: {
+            ...antes.posicoes,
+            [acao.duplaId]: { pipelineId: acao.pipelineId, etapaId: acao.etapaId, desde: new Date().toISOString() },
+          },
         });
       return { antes };
     },
@@ -90,7 +111,7 @@ export function posicaoDa(dados: DadosRadar | undefined, duplaId: string) {
   const salva = dados.posicoes[duplaId];
   const pipeline = (salva && dados.pipelines.find((p) => p.id === salva.pipelineId)) || dados.pipelines[0];
   const etapa = pipeline.etapas.find((e) => e.id === salva?.etapaId) ?? pipeline.etapas[0];
-  return { pipeline, etapa };
+  return { pipeline, etapa, desde: salva?.desde };
 }
 
 export const dataHoraBR = (iso: string) =>

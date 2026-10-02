@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowDown,
   ArrowUp,
@@ -94,6 +95,8 @@ export function DuplasPage() {
   const [visao, setVisao] = useLembrar<Visao>("radar:visao-duplas", "funil");
   const [pipelineId, setPipelineId] = useLembrar<string>("radar:funil", "");
   const [aberta, setAberta] = useState<Rascunho | null>(null);
+  const navigate = useNavigate();
+  const abrirDupla = (d: Dupla) => navigate({ to: "/duplas/$id", params: { id: d.id } });
   const [editandoFunis, setEditandoFunis] = useState(false);
 
   const { data: duplas = [] } = useQuery({
@@ -167,10 +170,10 @@ export function DuplasPage() {
         ) : !radar.data || !pipeline ? (
           <div className="cartao px-6 py-10 text-center text-muted-foreground">Carregando funil…</div>
         ) : (
-          <Kanban pipeline={pipeline} dados={radar.data} duplas={duplas} abrir={(d) => setAberta(d as Rascunho)} />
+          <Kanban pipeline={pipeline} dados={radar.data} duplas={duplas} abrir={abrirDupla} />
         )
       ) : (
-        <Lista duplas={duplas} dados={radar.data} abrir={(d) => setAberta(d as Rascunho)} />
+        <Lista duplas={duplas} dados={radar.data} abrir={abrirDupla} />
       )}
 
       <PainelDupla

@@ -26,8 +26,10 @@ function vazio() {
     ],
     // duplaId -> { pipelineId, etapaId }
     posicoes: {},
-    // duplaId -> [{ id, texto, autor, criadoEm }]
+    // duplaId -> [{ id, texto, autor, criadoEm, fixada? }]
     notas: {},
+    // duplaId -> [{ id, tipo: "etapa" | "campos", mudancas: [{ campo, de, para }], autor, em }]
+    historico: {},
   };
 }
 
@@ -143,10 +145,34 @@ const ACOES = {
       else if (!p.etapas.some((e) => e.id === pos.etapaId)) pos.etapaId = p.etapas[0].id;
     }
   },
-  mover(d, { duplaId, pipelineId, etapaId }) {
+  mover(d, { duplaId, pipelineId, etapaId }, quem) {
     const p = d.pipelines.find((x) => x.id === pipelineId);
-    if (!p || !p.etapas.some((e) => e.id === etapaId)) throw new ErroUso("Etapa não encontrada");
-    d.posicoes[String(duplaId)] = { pipelineId, etapaId };
+    const etapa = p?.etapas.find((e) => e.id === etapaId);
+    if (!etapa) throw new ErroUso("Etapa não encontrada");
+    const antes = d.posicoes[duplaId];
+    if (antes?.pipelineId === pipelineId && antes?.etapaId === etapaId) return;
+    const pAntes = d.pipelines.find((x) => x.id === antes?.pipelineId) ?? d.pipelines[0];
+    const eAntes = pAntes.etapas.find((e) => e.id === antes?.etapaId) ?? pAntes.etapas[0];
+    d.posicoes[String(duplaId)] = { pipelineId, etapaId, desde: new Date().toISOString() };
+    const mudancas = [];
+    if (pAntes.id !== p.id) mudancas.push({ campo: "Funil", de: pAntes.nome, para: p.nome });
+    if (eAntes.id !== etapa.id || pAntes.id !== p.id) mudancas.push({ campo: "Etapa", de: eAntes.nome, para: etapa.nome });
+    registrarEvento(d, duplaId, "etapa", mudancas, quem);
+  },
+  // Mudanças de campos da dupla (o front salva no Supabase e manda o resumo pra cá).
+  registrar(d, { duplaId, mudancas }, quem) {
+    if (!Array.isArray(mudancas) || mudancas.length === 0) return;
+    const limpas = mudancas.slice(0, 30).map((m) => ({
+      campo: String(m.campo ?? "").slice(0, 80),
+      de: String(m.de ?? "—").slice(0, 300),
+      para: String(m.para ?? "—").slice(0, 300),
+    }));
+    registrarEvento(d, duplaId, "campos", limpas, quem);
+  },
+  fixarNota(d, { duplaId, notaId, fixada }) {
+    const nota = (d.notas[duplaId] ?? []).find((n) => n.id === notaId);
+    if (!nota) throw new ErroUso("Anotação não encontrada");
+    nota.fixada = !!fixada;
   },
   nota(d, { duplaId, texto: t }, quem) {
     const conteudo = String(t ?? "").trim();
@@ -169,8 +195,17 @@ const ACOES = {
   apagarDupla(d, { duplaId }) {
     delete d.posicoes[duplaId];
     delete d.notas[duplaId];
+    delete d.historico?.[duplaId];
   },
 };
+
+function registrarEvento(d, duplaId, tipo, mudancas, quem) {
+  if (!mudancas.length) return;
+  d.historico ??= {};
+  const lista = (d.historico[duplaId] ??= []);
+  lista.unshift({ id: randomUUID(), tipo, mudancas, autor: quem.email, em: new Date().toISOString() });
+  lista.length = Math.min(lista.length, 500);
+}
 
 const json = (corpo, status = 200) =>
   new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
