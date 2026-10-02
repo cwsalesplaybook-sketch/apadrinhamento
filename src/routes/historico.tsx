@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarCheck, ChevronDown, History, Lock, Search, StickyNote } from "lucide-react";
+import { ArrowRight, CalendarCheck, ChevronDown, Crown, History, Lock, Search, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
@@ -32,6 +32,7 @@ interface FotoDupla {
   horas: number;
   eventos: { id: string; tipo: string; mudancas: Mudanca[]; autor: string; em: string }[];
   notas: { id: string; texto: string; autor: string; criadoEm: string }[];
+  lideranca?: { id: string; texto: string; autor: string; criadoEm: string }[];
 }
 
 interface Ciclo {
@@ -99,7 +100,7 @@ export function HistoricoPage() {
   const atual = lista[idx];
   const anterior = lista[idx + 1];
 
-  const movimentou = (d: FotoDupla) => d.eventos.length > 0 || d.notas.length > 0;
+  const movimentou = (d: FotoDupla) => d.eventos.length > 0 || d.notas.length > 0 || !!d.lideranca?.length;
   const termo = busca.trim().toLowerCase();
   const cards = (atual?.duplas ?? []).filter(
     (d) =>
@@ -237,6 +238,7 @@ function CardDupla({ d, antes }: { d: FotoDupla; antes?: FotoDupla }) {
   const linhas = [
     ...d.eventos.map((e) => ({ em: e.em, autor: e.autor, tipo: e.tipo, texto: e.mudancas.map((m) => `${m.campo}: ${m.de} → ${m.para}`).join(" · ") })),
     ...d.notas.map((n) => ({ em: n.criadoEm, autor: n.autor, tipo: "nota", texto: n.texto })),
+    ...(d.lideranca ?? []).map((n) => ({ em: n.criadoEm, autor: n.autor, tipo: "lideranca", texto: n.texto })),
   ].sort((a, b) => b.em.localeCompare(a.em));
   const visiveis = aberto ? linhas : linhas.slice(0, 2);
 
@@ -307,7 +309,9 @@ function CardDupla({ d, antes }: { d: FotoDupla; antes?: FotoDupla }) {
           <ul className="space-y-1.5">
             {visiveis.map((l, i) => (
               <li key={i} className="flex gap-1.5 text-xs leading-snug">
-                {l.tipo === "nota" ? (
+                {l.tipo === "lideranca" ? (
+                  <Crown className="mt-px h-3.5 w-3.5 shrink-0 text-[#59327a]" />
+                ) : l.tipo === "nota" ? (
                   <StickyNote className="mt-px h-3.5 w-3.5 shrink-0 text-warning" />
                 ) : (
                   <CalendarCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" />

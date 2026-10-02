@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
+  FileText,
   History,
   LayoutGrid,
   LogOut,
@@ -24,6 +25,7 @@ const NAV = [
   { to: "/duplas", label: "Duplas", icon: Users },
   { to: "/weeklies", label: "Weeklies", icon: CalendarPlus },
   { to: "/historico", label: "Histórico", icon: History },
+  { to: "/templates", label: "Templates", icon: FileText },
   { to: "/base", label: "Base geral", icon: Database },
 ] as const;
 

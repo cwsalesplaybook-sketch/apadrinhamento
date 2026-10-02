@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
 import { SeletorPadrinho } from "@/components/SeletorPadrinho";
+import { ComentariosLideranca } from "@/components/ComentariosLideranca";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -251,6 +252,7 @@ export function DuplaPage() {
           salvarPessoa={(pessoa) => acao.mutate({ acao: "salvarPessoa", duplaId: id, pessoa })}
         />
         <div className="min-w-0 space-y-6">
+          <ComentariosLideranca duplaId={id} comentarios={radar.data?.comentarios?.[id] ?? []} />
           <Composer duplaId={id} />
           <Foco duplaId={id} notas={radar.data?.notas[id] ?? []} />
           <Historico

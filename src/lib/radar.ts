@@ -57,12 +57,49 @@ export function linkWhatsApp(telefone: string) {
   return `https://wa.me/${n.length <= 11 ? "55" + n : n}`;
 }
 
+export interface ComentarioLideranca {
+  id: string;
+  texto: string;
+  autor: string;
+  criadoEm: string;
+  editadoEm?: string;
+}
+
+export interface Template {
+  id: string;
+  titulo: string;
+  categoria: string;
+  texto: string;
+  autor: string;
+  criadoEm: string;
+  atualizadoEm?: string;
+  atualizadoPor?: string;
+}
+
+/** Lideranças (acesso master). O servidor (api/_radar-core.js) é quem garante; aqui é só pra tela. */
+export const MASTERS = [
+  "hyorranes.souza@cardapioweb.com",
+  "rafael.barbosa@cardapioweb.com",
+  "vanessa.alencar@cardapioweb.com",
+];
+
+export function useEu() {
+  const { data } = useQuery({
+    queryKey: ["eu"],
+    queryFn: async () => (await supabase.auth.getSession()).data.session?.user.email?.toLowerCase() ?? "",
+    staleTime: 30_000,
+  });
+  return { email: data ?? "", master: MASTERS.includes(data ?? "") };
+}
+
 export interface DadosRadar {
   pipelines: Pipeline[];
   posicoes: Record<string, { pipelineId: string; etapaId: string; desde?: string }>;
   notas: Record<string, Nota[]>;
   historico?: Record<string, Evento[]>;
   pessoas?: Record<string, Pessoa>;
+  comentarios?: Record<string, ComentarioLideranca[]>;
+  templates?: Template[];
 }
 
 type Acao =
@@ -74,6 +111,11 @@ type Acao =
   | { acao: "salvarPessoa"; duplaId: string; pessoa: Pessoa }
   | { acao: "fixarNota"; duplaId: string; notaId: string; fixada: boolean }
   | { acao: "registrar"; duplaId: string; mudancas: Mudanca[] }
+  | { acao: "comentarioLideranca"; duplaId: string; texto: string }
+  | { acao: "editarComentarioLideranca"; duplaId: string; comentarioId: string; texto: string }
+  | { acao: "apagarComentarioLideranca"; duplaId: string; comentarioId: string }
+  | { acao: "salvarTemplate"; template: Partial<Template> }
+  | { acao: "apagarTemplate"; templateId: string }
   | { acao: "apagarDupla"; duplaId: string };
 
 export async function chamar<T>(init?: RequestInit): Promise<T> {

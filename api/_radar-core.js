@@ -121,7 +121,7 @@ async function alterar(fn) {
 async function usuario(request) {
   const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   if (!token) return null;
-  if (process.env.RADAR_DEV_SEM_LOGIN === "1") return { email: "dev@local" };
+  if (process.env.RADAR_DEV_SEM_LOGIN === "1") return { email: process.env.RADAR_DEV_EMAIL || "dev@local" };
   const url = process.env.VITE_SUPABASE_URL;
   const chave = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const r = await fetch(`${url}/auth/v1/user`, { headers: { apikey: chave, Authorization: `Bearer ${token}` } });
@@ -150,7 +150,64 @@ function validarPipelines(lista) {
   });
 }
 
+// Lideranças: só elas escrevem "Comentários da Liderança". Mesma lista em src/lib/radar.ts (só pra tela).
+export const MASTERS = [
+  "hyorranes.souza@cardapioweb.com",
+  "rafael.barbosa@cardapioweb.com",
+  "vanessa.alencar@cardapioweb.com",
+];
+const ehMaster = (quem) => MASTERS.includes(String(quem?.email ?? "").toLowerCase());
+
+function exigirMaster(quem) {
+  if (!ehMaster(quem)) throw new ErroUso("Só a liderança pode fazer isso.");
+}
+
 const ACOES = {
+  /* ---- Comentários da Liderança ---- */
+  comentarioLideranca(d, { duplaId, texto: t }, quem) {
+    exigirMaster(quem);
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva o comentário");
+    d.comentarios ??= {};
+    const c = { id: randomUUID(), texto: conteudo.slice(0, 10000), autor: quem.email, criadoEm: new Date().toISOString() };
+    (d.comentarios[duplaId] ??= []).unshift(c);
+    return c;
+  },
+  editarComentarioLideranca(d, { duplaId, comentarioId, texto: t }, quem) {
+    exigirMaster(quem);
+    const c = (d.comentarios?.[duplaId] ?? []).find((x) => x.id === comentarioId);
+    if (!c) throw new ErroUso("Comentário não encontrado");
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva o comentário");
+    c.texto = conteudo.slice(0, 10000);
+    c.editadoEm = new Date().toISOString();
+  },
+  apagarComentarioLideranca(d, { duplaId, comentarioId }, quem) {
+    exigirMaster(quem);
+    if (d.comentarios?.[duplaId]) d.comentarios[duplaId] = d.comentarios[duplaId].filter((x) => x.id !== comentarioId);
+  },
+
+  /* ---- Templates de PSM ---- */
+  salvarTemplate(d, { template }, quem) {
+    const titulo = texto(template?.titulo, 120);
+    const corpo = String(template?.texto ?? "").trim();
+    if (!corpo) throw new ErroUso("Escreva o texto do template");
+    const categoria = String(template?.categoria ?? "").trim().slice(0, 60) || "Geral";
+    d.templates ??= [];
+    const agora = new Date().toISOString();
+    const existente = template?.id && d.templates.find((x) => x.id === template.id);
+    if (existente) {
+      Object.assign(existente, { titulo, categoria, texto: corpo.slice(0, 20000), atualizadoEm: agora, atualizadoPor: quem.email });
+      return existente;
+    }
+    const novo = { id: randomUUID(), titulo, categoria, texto: corpo.slice(0, 20000), autor: quem.email, criadoEm: agora };
+    d.templates.unshift(novo);
+    return novo;
+  },
+  apagarTemplate(d, { templateId }) {
+    d.templates = (d.templates ?? []).filter((x) => x.id !== templateId);
+  },
+
   // Substitui a lista de funis (tela "Editar funis"). Duplas em etapas que sumiram
   // voltam para a primeira etapa do funil delas (ou do primeiro funil).
   salvarPipelines(d, corpo) {
@@ -227,6 +284,7 @@ const ACOES = {
     delete d.notas[duplaId];
     delete d.historico?.[duplaId];
     delete d.pessoas?.[duplaId];
+    delete d.comentarios?.[duplaId];
   },
 };
 

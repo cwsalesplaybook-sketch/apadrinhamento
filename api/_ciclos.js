@@ -118,6 +118,10 @@ function fotografar(duplas, dados, inicio, fim, agora) {
       horas: num(d.horas_padrinho) + num(d.horas_psm),
       // O que aconteceu na semana
       eventos: (dados.historico?.[id] ?? []).filter((ev) => dentro(ev.em, inicio, fim)).slice(0, 40),
+      lideranca: (dados.comentarios?.[id] ?? [])
+        .filter((n) => dentro(n.criadoEm, inicio, fim))
+        .slice(0, 20)
+        .map((n) => ({ id: n.id, texto: String(n.texto).slice(0, 1500), autor: n.autor, criadoEm: n.criadoEm })),
       notas: (dados.notas?.[id] ?? [])
         .filter((n) => dentro(n.criadoEm, inicio, fim))
         .slice(0, 40)
