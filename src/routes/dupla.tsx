@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
+import { SeletorPadrinho } from "@/components/SeletorPadrinho";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -362,13 +363,19 @@ function CampoInline({ def, valor, salvar }: { def: DefCampo; valor: unknown; sa
   const [editando, setEditando] = useState(false);
   const [rascunho, setRascunho] = useState("");
 
+  const aberto = useRef(false);
+
   function abrir() {
     setRascunho(valor === null || valor === undefined ? "" : String(valor));
     setEditando(true);
+    aberto.current = true;
   }
-  function confirmar() {
+  function confirmar(texto = rascunho) {
+    // select dispara change + blur: só salva uma vez
+    if (!aberto.current) return;
+    aberto.current = false;
     setEditando(false);
-    let novo: unknown = rascunho.trim() === "" ? null : rascunho;
+    let novo: unknown = texto.trim() === "" ? null : texto.trim();
     if (def.tipo === "number") novo = novo === null ? 0 : Number(novo);
     if ((def.nome === "afilhado" || def.nome === "padrinho") && !novo) return toast.error("Esse campo não pode ficar vazio");
     if (String(novo ?? "") !== String(valor ?? "")) salvar(novo);
@@ -376,9 +383,19 @@ function CampoInline({ def, valor, salvar }: { def: DefCampo; valor: unknown; sa
 
   const classeInput = "w-full rounded-lg border border-primary bg-white px-2 py-1 text-sm outline-none";
   let editor: ReactNode;
-  if (def.tipo === "status")
+  if (def.nome === "padrinho")
     editor = (
-      <select autoFocus className={classeInput} value={rascunho} onChange={(e) => setRascunho(e.target.value)} onBlur={confirmar}>
+      <SeletorPadrinho
+        autoFocus
+        className="rounded-lg border-primary bg-white px-2 py-1"
+        valor={rascunho}
+        aoMudar={setRascunho}
+        aoSair={confirmar}
+      />
+    );
+  else if (def.tipo === "status")
+    editor = (
+      <select autoFocus className={classeInput} value={rascunho} onChange={(e) => setRascunho(e.target.value)} onBlur={() => confirmar()}>
         {Object.entries(STATUS_LABEL).map(([v, r]) => (
           <option key={v} value={v}>
             {r}
@@ -388,7 +405,7 @@ function CampoInline({ def, valor, salvar }: { def: DefCampo; valor: unknown; sa
     );
   else if (def.tipo === "longo")
     editor = (
-      <Textarea autoFocus className="min-h-24 bg-white" value={rascunho} onChange={(e) => setRascunho(e.target.value)} onBlur={confirmar} />
+      <Textarea autoFocus className="min-h-24 bg-white" value={rascunho} onChange={(e) => setRascunho(e.target.value)} onBlur={() => confirmar()} />
     );
   else
     editor = (
@@ -399,10 +416,13 @@ function CampoInline({ def, valor, salvar }: { def: DefCampo; valor: unknown; sa
         className={classeInput}
         value={rascunho}
         onChange={(e) => setRascunho(e.target.value)}
-        onBlur={confirmar}
+        onBlur={() => confirmar()}
         onKeyDown={(e) => {
           if (e.key === "Enter") confirmar();
-          if (e.key === "Escape") setEditando(false);
+          if (e.key === "Escape") {
+            aberto.current = false;
+            setEditando(false);
+          }
         }}
       />
     );

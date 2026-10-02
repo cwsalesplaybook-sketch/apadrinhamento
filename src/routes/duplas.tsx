@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { PADRINHO_PADRAO, SeletorPadrinho } from "@/components/SeletorPadrinho";
 import { cn } from "@/lib/utils";
 import {
   STATUS_LABEL,
@@ -44,7 +45,7 @@ import {
 type Rascunho = Partial<Dupla> & Record<string, unknown>;
 
 const NOVA: Rascunho = {
-  padrinho: "",
+  padrinho: PADRINHO_PADRAO,
   afilhado: "",
   ciclo: 1,
   data_inicio: new Date().toISOString().slice(0, 10),
@@ -565,7 +566,13 @@ function FormDupla({
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {campo("afilhado", "Afilhado")}
-        {campo("padrinho", "Padrinho")}
+        <div className="space-y-1">
+          <Label className="text-xs">Padrinho</Label>
+          <SeletorPadrinho
+            valor={String(rascunho.padrinho ?? "")}
+            aoMudar={(nome) => setRascunho((r) => ({ ...r, padrinho: nome }))}
+          />
+        </div>
         {campo("ciclo", "Ciclo", "number")}
         {campo("data_inicio", "Início (D0)", "date")}
         <div className="space-y-1 sm:col-span-2">
