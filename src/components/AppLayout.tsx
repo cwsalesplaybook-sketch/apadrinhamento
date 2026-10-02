@@ -33,8 +33,21 @@ async function sair(navigate: () => void) {
 function MenuLateral() {
   const router = useRouter();
   return (
-    <div className="menu-3d-cena md:sticky md:top-0 md:h-screen md:w-72 md:shrink-0 md:p-5">
+    <div className="md:sticky md:top-0 md:h-screen md:w-72 md:shrink-0 md:p-5">
       <aside className="menu-3d relative flex flex-col overflow-visible text-white md:h-full">
+        <svg width="0" height="0" className="absolute" aria-hidden>
+          <defs>
+            <linearGradient id="icone-3d" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="8" y2="22">
+              <stop offset="0" stopColor="#f3e9ff" />
+              <stop offset="0.55" stopColor="#c9a8ff" />
+              <stop offset="1" stopColor="#a47cf2" />
+            </linearGradient>
+            <linearGradient id="icone-3d-ativo" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="8" y2="22">
+              <stop offset="0" stopColor="#ffffff" />
+              <stop offset="1" stopColor="#efe3ff" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="relative z-10 px-5 pt-6">
           <img src="/brand/logo-cw-eminence.webp" alt="Cardápio Web" className="h-14 drop-shadow-lg" />
           <div className="menu-3d-marca mt-5 rounded-2xl px-4 py-3.5">
@@ -52,7 +65,11 @@ function MenuLateral() {
             >
               {({ isActive }) => (
                 <>
-                  <item.icon className="menu-3d-icone h-6 w-6 shrink-0" strokeWidth={1.9} />
+                  <item.icon
+                    className="menu-3d-icone h-7 w-7 shrink-0"
+                    stroke={isActive ? "url(#icone-3d-ativo)" : "url(#icone-3d)"}
+                    strokeWidth={2.3}
+                  />
                   <span className="flex-1">{item.label}</span>
                   {isActive && (
                     <span className="hidden h-7 w-7 items-center justify-center rounded-full bg-white/20 md:flex">
@@ -75,7 +92,7 @@ function MenuLateral() {
             onClick={() => sair(() => router.navigate({ to: "/auth" }))}
             className="flex w-full items-center gap-4 px-7 pb-7 pt-4 text-[15px] font-bold text-white/80 hover:text-white"
           >
-            <LogOut className="h-6 w-6" strokeWidth={1.9} /> Sair
+            <LogOut className="menu-3d-icone h-7 w-7" stroke="url(#icone-3d)" strokeWidth={2.3} /> Sair
           </button>
         </div>
       </aside>
