@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowDown,
+  Crown,
   ArrowUp,
   Columns3,
   FileText,
@@ -249,6 +250,7 @@ function Kanban({
             <div className="flex min-h-24 flex-1 flex-col gap-2.5">
               {cards.map((d) => {
                 const notas = dados.notas[d.id]?.length ?? 0;
+                const lideranca = dados.comentarios?.[d.id]?.length ?? 0;
                 return (
                   <button
                     key={d.id}
@@ -266,8 +268,16 @@ function Kanban({
                       <span className="num rounded-full bg-primary/10 px-2 py-0.5 text-primary">D{diasDesde(d.data_inicio)}</span>
                       <span className="rounded-full bg-accent px-2 py-0.5">{STATUS_LABEL[d.status] ?? d.status}</span>
                       <span className="text-muted-foreground">{reunioesFeitas(d)}/4 reuniões</span>
+                      {lideranca > 0 && (
+                        <span
+                          className="ml-auto flex items-center gap-1 rounded-full bg-warning/25 px-1.5 py-0.5 font-bold text-ink"
+                          title="Comentários da Liderança"
+                        >
+                          <Crown className="h-3.5 w-3.5" /> {lideranca}
+                        </span>
+                      )}
                       {notas > 0 && (
-                        <span className="ml-auto flex items-center gap-1 text-muted-foreground" title="Anotações">
+                        <span className={cn("flex items-center gap-1 text-muted-foreground", !lideranca && "ml-auto")} title="Anotações">
                           <StickyNote className="h-3.5 w-3.5" /> {notas}
                         </span>
                       )}

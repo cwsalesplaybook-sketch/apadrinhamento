@@ -12,9 +12,6 @@ export function ComentariosLideranca({ duplaId, comentarios }: { duplaId: string
   const [texto, setTexto] = useState("");
   const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
 
-  // PSM sem nenhum comentário da liderança: não ocupa espaço.
-  if (!master && comentarios.length === 0) return null;
-
   return (
     <section className="cartao-escuro overflow-hidden">
       <header className="flex items-center gap-2.5 px-5 pb-3 pt-4">
@@ -58,6 +55,9 @@ export function ComentariosLideranca({ duplaId, comentarios }: { duplaId: string
         </form>
       )}
 
+      {comentarios.length === 0 && !master && (
+        <p className="border-t border-white/15 px-5 py-4 text-sm text-white/70">Nenhum comentário da liderança ainda.</p>
+      )}
       {comentarios.length > 0 && (
         <ul className="space-y-2.5 border-t border-white/15 px-5 py-4">
           {comentarios.map((c) => (
