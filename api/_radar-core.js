@@ -43,13 +43,23 @@ async function armazenamentoBlob() {
     console.error("Blob sem credenciais. Variáveis BLOB*:", Object.keys(process.env).filter((k) => k.includes("BLOB")));
     throw new ErroUso("O armazenamento dos funis ainda não foi conectado na Vercel.");
   }
-  const { get, put, BlobPreconditionFailedError } = await import("@vercel/blob");
+  const { get, head, put, BlobNotFoundError, BlobPreconditionFailedError } = await import("@vercel/blob");
   return {
     async ler() {
+      // ETag oficial vem do head() (API). O do get() é o cabeçalho do download e pode não bater
+      // com o que o put({ ifMatch }) compara — aí toda gravação falhava. Lendo o head ANTES do
+      // conteúdo, se alguém gravar no meio o ifMatch falha e o alterar() tenta de novo.
+      let etag;
+      try {
+        etag = (await head(ARQUIVO)).etag;
+      } catch (e) {
+        if (e instanceof BlobNotFoundError) return { dados: vazio(), etag: null };
+        throw e;
+      }
       const r = await get(ARQUIVO, { access: "private", useCache: false });
       if (!r || r.statusCode !== 200) return { dados: vazio(), etag: null };
       const texto = await new Response(r.stream).text();
-      return { dados: JSON.parse(texto), etag: r.blob.etag };
+      return { dados: JSON.parse(texto), etag };
     },
     async gravar(dados, etag) {
       try {
@@ -63,7 +73,10 @@ async function armazenamentoBlob() {
         return true;
       } catch (e) {
         // Outra pessoa gravou antes: relê e aplica de novo.
-        if (e instanceof BlobPreconditionFailedError || /already exists/i.test(String(e?.message))) return false;
+        if (e instanceof BlobPreconditionFailedError || /already exists/i.test(String(e?.message))) {
+          console.warn("Conflito ao gravar (etag " + etag + "), tentando de novo:", e?.message);
+          return false;
+        }
         throw e;
       }
     },
