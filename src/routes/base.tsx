@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Database, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
@@ -70,7 +70,7 @@ export function BasePage() {
   }
 
   const card = (titulo: string, valor: string, nota?: string) => (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="cartao p-5">
       <div className="text-sm text-muted-foreground">{titulo}</div>
       <div className="num mt-2 text-3xl text-ink">{valor}</div>
       {nota && <div className="text-xs text-muted-foreground">{nota}</div>}
@@ -78,7 +78,7 @@ export function BasePage() {
   );
 
   return (
-    <AppLayout title="Base geral" subtitle="Registre periodicamente os números da base de representantes">
+    <AppLayout icon={Database} title="Base geral" subtitle="Registre periodicamente os números da base de representantes">
       {ultimo && (
         <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {card("Cadastrados", String(ultimo.cadastrados), `em ${dataBR(ultimo.data)}`)}
@@ -100,7 +100,7 @@ export function BasePage() {
         </div>
       )}
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <section className="rounded-2xl border bg-card p-5">
+        <section className="cartao p-5">
           <h2 className="text-lg font-black text-ink">Evolução</h2>
           {snapshots.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Nenhum registro ainda.</p>
@@ -171,7 +171,7 @@ export function BasePage() {
             </>
           )}
         </section>
-        <form onSubmit={registrar} className="h-fit space-y-3 rounded-2xl border bg-card p-5">
+        <form onSubmit={registrar} className="h-fit space-y-3 cartao p-5">
           <h2 className="text-lg font-black text-ink">Nova fotografia</h2>
           {CAMPOS.map(([campo, rotulo, tipo]) => (
             <div key={campo} className="space-y-1">

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { CalendarPlus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout, Vazio } from "@/components/AppLayout";
@@ -40,6 +40,7 @@ export function WeekliesPage() {
 
   return (
     <AppLayout
+      icon={CalendarPlus}
       title="Weeklies"
       subtitle="Ata, status das duplas, objeções e próximos passos"
       actions={
@@ -61,7 +62,7 @@ export function WeekliesPage() {
               key={w.id}
               to="/weeklies/$id"
               params={{ id: w.id }}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-5 hover:border-primary"
+              className="flex flex-wrap items-center justify-between gap-4 cartao p-5 transition-transform hover:-translate-y-0.5"
             >
               <div>
                 <div className="num text-lg">{dataBR(w.data)}</div>

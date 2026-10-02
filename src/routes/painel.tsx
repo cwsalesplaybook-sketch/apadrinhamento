@@ -1,49 +1,186 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { AppLayout, Vazio } from "@/components/AppLayout";
 import {
-  METAS,
-  calcularIndicadores,
-  diasDesde,
-  fase,
-  pct,
-  reunioesFeitas,
-  type Dupla,
-} from "@/lib/apadrinhamento";
+  ArrowRight,
+  CalendarDays,
+  ChartColumnIncreasing,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Filter,
+  Info,
+  MapPin,
+  Store,
+  Target,
+  Users,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { AppLayout, IconeCirculo, Vazio } from "@/components/AppLayout";
+import { METAS, calcularIndicadores, diasDesde, pct, type Dupla } from "@/lib/apadrinhamento";
+
+const VERDE = "#2fc39a";
+
+function Seta() {
+  return (
+    <Link to="/duplas" className="botao-chevron" aria-label="Ver duplas">
+      <ChevronRight className="h-4 w-4" />
+    </Link>
+  );
+}
 
 function CardMeta({
+  icon,
+  cor = "roxo",
   titulo,
+  descricao,
   valor,
   meta,
   total,
   nota,
 }: {
+  icon: typeof Users;
+  cor?: "roxo" | "verde";
   titulo: string;
+  descricao: string;
   valor: number;
   meta: number;
   total: number;
   nota: string;
 }) {
-  const bateu = valor >= meta;
   const largura = total ? Math.min(100, (valor / Math.max(total, 1)) * 100) : 0;
+  const barra =
+    cor === "verde" ? `linear-gradient(90deg, #1fb487, ${VERDE})` : "linear-gradient(90deg, #8b2ff7, #b25bff)";
   return (
-    <div className="rounded-2xl border bg-card p-5">
-      <div className="text-sm text-muted-foreground">{titulo}</div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className={`num text-4xl ${bateu ? "text-primary" : "text-ink"}`}>{valor}</span>
-        <span className="text-muted-foreground">
-          / {total} · meta {meta}
-        </span>
+    <div className="cartao flex flex-col px-4 py-5">
+      <div className="flex items-start gap-2.5">
+        <IconeCirculo icon={icon} cor={cor} />
+        <div className="min-w-0 flex-1 pt-1">
+          <div className="truncate text-[17px] font-black text-ink">{titulo}</div>
+          <div className="truncate text-[13px] text-muted-foreground" title={descricao}>{descricao}</div>
+        </div>
+        <Seta />
       </div>
-      <div className="mt-3 h-2 rounded-full bg-muted">
-        <div className={`h-2 rounded-full ${bateu ? "bg-warning" : "bg-primary"}`} style={{ width: `${largura}%` }} />
+      <div className="mt-4 flex items-baseline gap-1.5 text-ink">
+        <span className="num text-[40px] leading-none">{valor}</span>
+        <span className="text-2xl font-bold">/ {total}</span>
       </div>
-      <div className="mt-2 text-xs text-muted-foreground">{nota}</div>
+      <div className="mt-1 text-sm text-muted-foreground">meta {meta}</div>
+      <div className="mt-3 h-2 rounded-full bg-[#ece4f6]">
+        <div className="h-2 rounded-full" style={{ width: `${largura}%`, background: barra }} />
+      </div>
+      <div className="mt-4 text-[13px] text-muted-foreground">{nota}</div>
     </div>
   );
 }
+
+const ETAPAS = [
+  "Treino",
+  "Prospecção",
+  "Reunião 1",
+  "Reunião 2",
+  "Reunião 3",
+  "Reunião 4",
+  "Venda originada",
+  "Venda conduzida",
+] as const;
+
+function etapaAtual(d: Dupla, dia: number) {
+  const alcancadas = [
+    dia >= 0,
+    dia > 5 || !!d.reuniao1,
+    !!d.reuniao1,
+    !!d.reuniao2,
+    !!d.reuniao3,
+    !!d.reuniao4,
+    !!d.venda_originada,
+    !!d.venda_conduzida,
+  ];
+  return alcancadas.lastIndexOf(true);
+}
+
+function LinhaDupla({ d }: { d: Dupla }) {
+  const dia = diasDesde(d.data_inicio);
+  const atual = etapaAtual(d, dia);
+  return (
+    <div className="rounded-2xl border border-[#ece3f6] p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ede3fb] text-lg font-black text-primary">
+          {d.afilhado.trim().charAt(0).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-black text-ink">{d.afilhado}</div>
+          <div className="truncate text-sm text-muted-foreground">
+            Padrinho: {d.padrinho} · Ciclo {d.ciclo}
+          </div>
+        </div>
+        <span className="rounded-full bg-[#f1e9fb] px-3 py-1 text-sm font-black text-primary">D{dia}</span>
+      </div>
+      <div className="mt-4 overflow-x-auto pb-1">
+        <div className="relative min-w-[640px]">
+          <div className="absolute left-[6px] right-[6px] top-[5px] h-[3px] rounded-full bg-[#ece4f6]" />
+          <div
+            className="absolute left-[6px] top-[5px] h-[3px] rounded-full bg-primary"
+            style={{ width: atual > 0 ? `calc(${(atual / (ETAPAS.length - 1)) * 100}% - 12px)` : 0 }}
+          />
+          <div className="relative flex justify-between">
+            {ETAPAS.map((etapa, i) => (
+              <div key={etapa} className="flex w-0 flex-col items-center first:items-start last:items-end">
+                <span
+                  className={`h-[13px] w-[13px] rounded-full border-2 ${
+                    i <= atual ? "border-primary bg-primary" : "border-[#ddd0ee] bg-white"
+                  } ${i === atual ? "ring-4 ring-primary/20" : ""}`}
+                />
+                <span
+                  className={`mt-2 whitespace-nowrap text-xs ${i === atual ? "font-black text-ink" : "text-muted-foreground"}`}
+                >
+                  {etapa}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Anel({ padrinho, psm, previsto }: { padrinho: number; psm: number; previsto: number }) {
+  const r = 70;
+  const c = 2 * Math.PI * r;
+  const base = Math.max(previsto, padrinho + psm, 1);
+  const a = (padrinho / base) * c;
+  const b = (psm / base) * c;
+  return (
+    <div className="relative mx-auto h-48 w-48">
+      <svg viewBox="0 0 180 180" className="h-full w-full -rotate-90">
+        <circle cx="90" cy="90" r={r} fill="none" stroke="#efe6fa" strokeWidth="16" />
+        {a > 0 && (
+          <circle cx="90" cy="90" r={r} fill="none" stroke="#8b2ff7" strokeWidth="16" strokeLinecap="round" strokeDasharray={`${a} ${c}`} />
+        )}
+        {b > 0 && (
+          <circle
+            cx="90"
+            cy="90"
+            r={r}
+            fill="none"
+            stroke="#ffb600"
+            strokeWidth="16"
+            strokeLinecap="round"
+            strokeDasharray={`${b} ${c}`}
+            strokeDashoffset={-a}
+          />
+        )}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="num text-4xl text-ink">{+(padrinho + psm).toFixed(1)}h</div>
+        <div className="text-sm text-muted-foreground">total investido</div>
+      </div>
+    </div>
+  );
+}
+
+const COR_FUNIL = ["#8b5cf6", "#8b5cf6", "#7c83f6", "#6f8ff5", "#6f8ff5", VERDE, VERDE];
 
 export function PainelPage() {
   const { data: duplas = [] } = useQuery({
@@ -59,25 +196,29 @@ export function PainelPage() {
   const filtradas = ciclo === "todos" ? duplas : duplas.filter((d) => d.ciclo === ciclo);
   const ind = calcularIndicadores(filtradas);
   const maxFunil = Math.max(1, ...ind.funil.map((f) => f.valor));
-  const horasTotal = ind.horasPadrinho + ind.horasPsm;
 
   return (
     <AppLayout
       title="Painel do ciclo"
       subtitle="Indicadores do modelo de apadrinhamento"
-      actions={
-        <select
-          className="rounded-lg border bg-card px-3 py-2 text-sm"
-          value={String(ciclo)}
-          onChange={(e) => setCiclo(e.target.value === "todos" ? "todos" : Number(e.target.value))}
-        >
-          <option value="todos">Todos os ciclos</option>
-          {ciclos.map((c) => (
-            <option key={c} value={c}>
-              Ciclo {c}
-            </option>
-          ))}
-        </select>
+      icon={CalendarDays}
+      filtros={
+        <label className="seletor-3d relative flex items-center gap-2 py-2.5 pl-4 pr-3 text-[15px] text-ink">
+          <CalendarDays className="h-5 w-5" strokeWidth={1.9} />
+          <select
+            className="cursor-pointer appearance-none bg-transparent pr-6 outline-none"
+            value={String(ciclo)}
+            onChange={(e) => setCiclo(e.target.value === "todos" ? "todos" : Number(e.target.value))}
+          >
+            <option value="todos">Todos os ciclos</option>
+            {ciclos.map((c) => (
+              <option key={c} value={c}>
+                Ciclo {c}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4" />
+        </label>
       }
     >
       {duplas.length === 0 ? (
@@ -88,124 +229,150 @@ export function PainelPage() {
           </Link>
         </Vazio>
       ) : (
-        <div className="space-y-8">
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="space-y-5">
+          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <CardMeta
-              titulo="Execução: 4 reuniões feitas"
+              icon={Users}
+              titulo="Execução"
+              descricao="4 reuniões feitas"
               valor={ind.execucao}
               meta={METAS.execucao}
               total={ind.total}
               nota="Mede a execução do método"
             />
             <CardMeta
-              titulo="Ativação: venda originada até D30"
+              icon={Store}
+              cor="verde"
+              titulo="Ativação"
+              descricao="venda originada até D30"
               valor={ind.ativacao}
               meta={METAS.ativacao}
               total={ind.total}
               nota={`Conduzidas até D30: ${ind.conduzidasD30} (piso ${METAS.conduzidasD30})`}
             />
             <CardMeta
-              titulo="Autonomia: venda conduzida até D60"
+              icon={Target}
+              titulo="Autonomia"
+              descricao="venda conduzida até D60"
               valor={ind.autonomia}
               meta={METAS.autonomia}
               total={ind.total}
               nota="Objetivo real do programa"
             />
-            <div className="rounded-2xl border bg-ink p-5 text-ink-foreground">
-              <div className="text-sm opacity-70">Aderência à cadência (check-ins)</div>
-              <div className="num mt-2 text-4xl text-warning">{pct(ind.aderencia)}</div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <div className="num text-xl">{ind.formados}</div>
-                  <span className="opacity-70">formados</span>
+            <div className="cartao-escuro flex flex-col px-4 py-5">
+              <div className="flex items-start gap-2.5">
+                <span className="tile-3d-escuro flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-2xl">
+                  <ChartColumnIncreasing className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <div className="min-w-0 flex-1 pt-1">
+                  <div className="whitespace-nowrap text-[15px] font-black">Aderência à cadência</div>
+                  <div className="text-sm text-white/75">(check-ins)</div>
                 </div>
-                <div>
-                  <div className="num text-xl">{ind.encerrados}</div>
-                  <span className="opacity-70">encerrados</span>
+                <Link to="/duplas" className="botao-chevron !bg-white/15 !text-white" aria-label="Ver duplas">
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+              <div className="mt-5 flex items-center gap-3">
+                <div className="h-1.5 flex-1 rounded-full bg-white/15">
+                  <div
+                    className="h-1.5 rounded-full bg-warning"
+                    style={{ width: `${Math.round((ind.aderencia ?? 0) * 100)}%` }}
+                  />
+                </div>
+                <span className="num text-sm text-warning">{pct(ind.aderencia)}</span>
+              </div>
+              <div className="mt-auto grid grid-cols-2 pt-5">
+                <div className="pr-4">
+                  <div className="num text-[32px] leading-none">{ind.formados}</div>
+                  <div className="mt-1 text-[15px] text-white/85">formados</div>
+                </div>
+                <div className="border-l border-white/20 pl-6">
+                  <div className="num text-[32px] leading-none">{ind.encerrados}</div>
+                  <div className="mt-1 text-[15px] text-white/85">encerrados</div>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border bg-card p-5 lg:col-span-2">
-              <h2 className="text-lg font-black text-ink">Funil das duplas</h2>
-              <div className="mt-4 space-y-3">
-                {ind.funil.map((f) => (
-                  <div key={f.label} className="grid grid-cols-[140px_1fr_40px] items-center gap-3 text-sm">
-                    <span className="text-muted-foreground">{f.label}</span>
-                    <div className="h-6 rounded-md bg-muted">
-                      <div className="h-6 rounded-md bg-primary" style={{ width: `${(f.valor / maxFunil) * 100}%` }} />
+          <section className="grid gap-5 lg:grid-cols-[1fr_minmax(0,430px)]">
+            <div className="cartao p-6">
+              <div className="flex items-start gap-2.5">
+                <IconeCirculo icon={Filter} />
+                <div className="flex-1 pt-0.5">
+                  <h2 className="text-lg font-black text-ink">Funil das duplas</h2>
+                  <p className="text-sm text-muted-foreground">Acompanhe o andamento de cada etapa da dupla no programa.</p>
+                </div>
+                <Seta />
+              </div>
+              <div className="mt-5 space-y-3.5">
+                {ind.funil.map((f, i) => (
+                  <div key={f.label} className="grid grid-cols-[150px_1fr_36px] items-center gap-4 text-[15px]">
+                    <span className="flex items-center gap-2.5 text-ink">
+                      <i className="h-2.5 w-2.5 rounded-full" style={{ background: COR_FUNIL[i] }} />
+                      {f.label}
+                    </span>
+                    <div className="h-3 rounded-full bg-[#efe8f8]">
+                      <div
+                        className="h-3 rounded-full"
+                        style={{
+                          width: `${(f.valor / maxFunil) * 100}%`,
+                          background: `linear-gradient(90deg, ${COR_FUNIL[i]}cc, ${COR_FUNIL[i]})`,
+                        }}
+                      />
                     </div>
-                    <span className="num text-right">{f.valor}</span>
+                    <span className="num text-right text-ink">{f.valor}</span>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Leads novos (pipeline próprio, além dos 6 iniciais): {ind.leadsNovos}
+              <p className="mt-5 flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Info className="h-4 w-4 text-primary" />
+                Leads novos (pipeline próprio, além dos 6 iniciais): <b className="text-ink">{ind.leadsNovos}</b>
               </p>
             </div>
-            <div className="rounded-2xl border bg-card p-5">
-              <h2 className="text-lg font-black text-ink">Horas investidas</h2>
-              <div className="num mt-3 text-4xl text-ink">{horasTotal.toFixed(1)}h</div>
-              <div className="text-sm text-muted-foreground">previsto por ciclo: {METAS.horasCiclo}h</div>
-              <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="bg-chart-1"
-                  style={{ width: `${horasTotal ? (ind.horasPadrinho / horasTotal) * 100 : 0}%` }}
-                />
-                <div className="bg-chart-2" style={{ width: `${horasTotal ? (ind.horasPsm / horasTotal) * 100 : 0}%` }} />
+
+            <div className="cartao p-6">
+              <div className="flex items-start gap-2.5">
+                <IconeCirculo icon={Clock} />
+                <div className="flex-1 pt-0.5">
+                  <h2 className="text-lg font-black text-ink">Horas investidas</h2>
+                  <p className="text-sm text-muted-foreground">Previsto por ciclo: {METAS.horasCiclo}h</p>
+                </div>
+                <Seta />
               </div>
-              <div className="mt-3 space-y-1 text-sm">
+              <div className="mt-5">
+                <Anel padrinho={ind.horasPadrinho} psm={ind.horasPsm} previsto={METAS.horasCiclo} />
+              </div>
+              <div className="mt-6 space-y-3 text-[15px]">
                 <div className="flex justify-between">
-                  <span className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-chart-1" />
+                  <span className="flex items-center gap-3 text-ink">
+                    <i className="h-3 w-3 rounded-full bg-[#8b2ff7]" />
                     Padrinhos
                   </span>
-                  <b className="num">{ind.horasPadrinho.toFixed(1)}h</b>
+                  <b className="num text-ink">{ind.horasPadrinho.toFixed(1)}h</b>
                 </div>
                 <div className="flex justify-between">
-                  <span className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-chart-2" />
+                  <span className="flex items-center gap-3 text-ink">
+                    <i className="h-3 w-3 rounded-full bg-warning" />
                     PSM
                   </span>
-                  <b className="num">{ind.horasPsm.toFixed(1)}h</b>
+                  <b className="num text-ink">{ind.horasPsm.toFixed(1)}h</b>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-2xl border bg-card p-5">
-            <h2 className="text-lg font-black text-ink">Onde cada dupla está</h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {filtradas.map((d) => {
-                const dia = diasDesde(d.data_inicio);
-                const alerta = dia === 15 || dia === 30 || (dia > 30 && !d.venda_originada);
-                return (
-                  <div key={d.id} className={`rounded-xl border p-4 ${alerta ? "border-warning bg-warning/10" : ""}`}>
-                    <div className="flex justify-between text-sm">
-                      <b>{d.afilhado}</b>
-                      <span className="num text-primary">D{dia}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Padrinho: {d.padrinho} · Ciclo {d.ciclo}
-                    </div>
-                    <div className="mt-3 flex gap-1">
-                      {[1, 2, 3, 4].map((n) => (
-                        <div
-                          key={n}
-                          className={`h-1.5 flex-1 rounded-full ${n <= reunioesFeitas(d) ? "bg-primary" : "bg-muted"}`}
-                        />
-                      ))}
-                    </div>
-                    <div className="mt-2 text-xs">
-                      {fase(dia)}
-                      {d.venda_originada ? " · ✓ originada" : ""}
-                      {d.venda_conduzida ? " · ✓ conduzida" : ""}
-                    </div>
-                  </div>
-                );
-              })}
+          <section className="cartao p-6">
+            <div className="flex items-center gap-3">
+              <IconeCirculo icon={MapPin} />
+              <h2 className="flex-1 text-lg font-black text-ink">Onde cada dupla está</h2>
+              <Link to="/duplas" className="flex items-center gap-1 text-sm font-bold text-primary">
+                Ver todas <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-5 space-y-3">
+              {filtradas.map((d) => (
+                <LinhaDupla key={d.id} d={d} />
+              ))}
             </div>
           </section>
         </div>

@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
@@ -105,6 +105,7 @@ export function DuplasPage() {
 
   return (
     <AppLayout
+      icon={Users}
       title="Duplas"
       subtitle="Registro de reuniões, check-ins, leads e vendas"
       actions={
@@ -113,7 +114,7 @@ export function DuplasPage() {
         </Button>
       }
     >
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto cartao">
         <table className="w-full whitespace-nowrap text-sm">
           <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>

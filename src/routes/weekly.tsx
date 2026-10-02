@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, CalendarPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
@@ -121,7 +121,7 @@ export function WeeklyPage() {
 
   if (!data) {
     return (
-      <AppLayout title="Weekly">
+      <AppLayout title="Weekly" icon={CalendarPlus}>
         <p className="text-muted-foreground">Carregando…</p>
       </AppLayout>
     );
@@ -129,6 +129,7 @@ export function WeeklyPage() {
 
   return (
     <AppLayout
+      icon={CalendarPlus}
       title="Weekly"
       subtitle="Atualize a ata, o status das duplas e os próximos passos"
       actions={
@@ -153,7 +154,7 @@ export function WeeklyPage() {
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
-          <section className="space-y-4 rounded-2xl border bg-card p-5">
+          <section className="space-y-4 cartao p-5">
             <h2 className="text-lg font-black text-ink">Ata e decisões</h2>
             <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
               <div className="space-y-1">
@@ -185,7 +186,7 @@ export function WeeklyPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border bg-card p-5">
+          <section className="cartao p-5">
             <h2 className="text-lg font-black text-ink">Status por dupla</h2>
             {data.duplas.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma dupla ativa.</p>}
             <div className="mt-4 space-y-3">
@@ -229,7 +230,7 @@ export function WeeklyPage() {
           </section>
         </div>
 
-        <section className="h-fit rounded-2xl border bg-card p-5">
+        <section className="h-fit cartao p-5">
           <h2 className="text-lg font-black text-ink">Próximos passos</h2>
           <form onSubmit={adicionarAcao} className="mt-4 space-y-2">
             <Input
