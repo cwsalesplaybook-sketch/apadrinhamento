@@ -288,6 +288,80 @@ const ACOES = {
   apagarNota(d, { duplaId, notaId }) {
     d.notas[duplaId] = (d.notas[duplaId] ?? []).filter((n) => n.id !== notaId);
   },
+  /* ---- Daily: feed de atualizações ---- */
+  postarDaily(d, { texto: t, data }, quem) {
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva a atualização");
+    d.daily ??= [];
+    const post = {
+      id: randomUUID(),
+      texto: conteudo.slice(0, 5000),
+      data: dataValida(data),
+      autor: quem.email,
+      criadoEm: new Date().toISOString(),
+      curtidas: [],
+    };
+    d.daily.unshift(post);
+    d.daily.length = Math.min(d.daily.length, 3000);
+    return post;
+  },
+  editarDaily(d, { postId, texto: t, data }, quem) {
+    const post = (d.daily ?? []).find((p) => p.id === postId);
+    if (!post) throw new ErroUso("Atualização não encontrada");
+    if (post.autor !== quem.email) throw new ErroUso("Só quem escreveu pode editar.");
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva a atualização");
+    post.texto = conteudo.slice(0, 5000);
+    if (data) post.data = dataValida(data);
+    post.editadoEm = new Date().toISOString();
+  },
+  apagarDaily(d, { postId }, quem) {
+    const post = (d.daily ?? []).find((p) => p.id === postId);
+    if (!post) return;
+    if (post.autor !== quem.email && !ehMaster(quem)) throw new ErroUso("Só quem escreveu pode apagar.");
+    d.daily = d.daily.filter((p) => p.id !== postId);
+  },
+  curtirDaily(d, { postId }, quem) {
+    const post = (d.daily ?? []).find((p) => p.id === postId);
+    if (!post) throw new ErroUso("Atualização não encontrada");
+    post.curtidas ??= [];
+    post.curtidas = post.curtidas.includes(quem.email)
+      ? post.curtidas.filter((e) => e !== quem.email)
+      : [...post.curtidas, quem.email];
+  },
+  // Ícone (foto pequena, já reduzida no navegador) e nome de exibição de quem está logado.
+  salvarPerfil(d, { foto, nome }, quem) {
+    d.perfis ??= {};
+    const atual = d.perfis[quem.email] ?? {};
+    if (foto !== undefined) {
+      if (foto && (!/^data:image\/(png|jpeg|webp);base64,/.test(foto) || foto.length > 120000))
+        throw new ErroUso("Imagem inválida ou grande demais.");
+      atual.foto = foto || undefined;
+    }
+    if (nome !== undefined) atual.nome = String(nome).trim().slice(0, 60) || undefined;
+    d.perfis[quem.email] = atual;
+  },
+
+  /* ---- Anexos: links usados pelo time ---- */
+  salvarAnexo(d, { anexo }, quem) {
+    const titulo = texto(anexo?.titulo, 120);
+    const url = String(anexo?.url ?? "").trim();
+    if (!/^https?:\/\//i.test(url)) throw new ErroUso("O link precisa começar com http:// ou https://");
+    const descricao = String(anexo?.descricao ?? "").trim().slice(0, 500);
+    d.anexos ??= [];
+    const existente = anexo?.id && d.anexos.find((x) => x.id === anexo.id);
+    if (existente) {
+      Object.assign(existente, { titulo, url: url.slice(0, 2000), descricao, atualizadoEm: new Date().toISOString() });
+      return existente;
+    }
+    const novo = { id: randomUUID(), titulo, url: url.slice(0, 2000), descricao, autor: quem.email, criadoEm: new Date().toISOString() };
+    d.anexos.push(novo);
+    return novo;
+  },
+  apagarAnexo(d, { anexoId }) {
+    d.anexos = (d.anexos ?? []).filter((x) => x.id !== anexoId);
+  },
+
   apagarDupla(d, { duplaId }) {
     delete d.posicoes[duplaId];
     delete d.notas[duplaId];
@@ -296,6 +370,24 @@ const ACOES = {
     delete d.comentarios?.[duplaId];
   },
 };
+
+const ANEXOS_INICIAIS = () => [
+  {
+    id: randomUUID(),
+    titulo: "Link 01",
+    url: "https://www.canva.com/design/DAHW5OGlOBk/TBQiHHQVU8Dw67pQAgvlUA/edit?ui=eyJEIjp7IlMiOnRydWV9LCJBIjp7Ik8iOnsiQyI6dHJ1ZX19fQ",
+    descricao: "Design no Canva",
+    autor: "gabrielly.oliveira@cardapioweb.com",
+    criadoEm: new Date().toISOString(),
+  },
+];
+
+/** "AAAA-MM-DD"; se vier inválida, usa hoje (horário de Brasília). */
+function dataValida(v) {
+  const s = String(v ?? "");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+}
 
 const CAMPOS_PESSOA = {
   nome: "Nome completo",
@@ -326,6 +418,8 @@ export async function tratar(request) {
       const { dados, etag } = await (await armazenamento()).ler();
       // Primeira vez: grava o funil padrão, senão cada leitura geraria ids novos.
       if (!etag) return json((await alterar(() => {})).dados);
+      // Anexos ainda não existem: cria a lista já com o Link 01 (Canva).
+      if (!dados.anexos) return json((await alterar((d) => { d.anexos ??= ANEXOS_INICIAIS(); })).dados);
       return json(dados);
     }
     if (request.method === "POST") {

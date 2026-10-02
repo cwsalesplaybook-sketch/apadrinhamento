@@ -92,6 +92,44 @@ export function useEu() {
   return { email: data ?? "", master: MASTERS.includes(data ?? "") };
 }
 
+export interface PostDaily {
+  id: string;
+  texto: string;
+  /** Dia a que a atualização se refere (AAAA-MM-DD). */
+  data: string;
+  autor: string;
+  criadoEm: string;
+  editadoEm?: string;
+  curtidas?: string[];
+}
+
+export interface Perfil {
+  foto?: string;
+  nome?: string;
+}
+
+export interface Anexo {
+  id: string;
+  titulo: string;
+  url: string;
+  descricao?: string;
+  autor: string;
+  criadoEm: string;
+  atualizadoEm?: string;
+}
+
+/** "gabrielly.oliveira@..." -> "Gabrielly Oliveira" (ou o nome que a pessoa salvou no perfil). */
+export function nomeDe(email: string, perfis?: Record<string, Perfil>) {
+  const salvo = perfis?.[email]?.nome;
+  if (salvo) return salvo;
+  return email
+    .split("@")[0]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((p) => p[0].toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
 export interface DadosRadar {
   pipelines: Pipeline[];
   posicoes: Record<string, { pipelineId: string; etapaId: string; desde?: string }>;
@@ -102,6 +140,9 @@ export interface DadosRadar {
   templates?: Template[];
   /** Checklist do Playbook de ativação: itemId -> quem marcou e quando. */
   playbook?: Record<string, { por: string; em: string }>;
+  daily?: PostDaily[];
+  perfis?: Record<string, Perfil>;
+  anexos?: Anexo[];
 }
 
 type Acao =
@@ -119,6 +160,13 @@ type Acao =
   | { acao: "salvarTemplate"; template: Partial<Template> }
   | { acao: "apagarTemplate"; templateId: string }
   | { acao: "marcarPlaybook"; itemId: string; feito: boolean }
+  | { acao: "postarDaily"; texto: string; data: string }
+  | { acao: "editarDaily"; postId: string; texto: string; data: string }
+  | { acao: "apagarDaily"; postId: string }
+  | { acao: "curtirDaily"; postId: string }
+  | { acao: "salvarPerfil"; foto?: string; nome?: string }
+  | { acao: "salvarAnexo"; anexo: Partial<Anexo> }
+  | { acao: "apagarAnexo"; anexoId: string }
   | { acao: "apagarDupla"; duplaId: string };
 
 export async function chamar<T>(init?: RequestInit): Promise<T> {

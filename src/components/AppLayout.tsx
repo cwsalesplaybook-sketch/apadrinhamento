@@ -12,6 +12,8 @@ import {
   History,
   LayoutGrid,
   LogOut,
+  MessagesSquare,
+  Paperclip,
   User,
   Users,
   type LucideProps,
@@ -28,6 +30,8 @@ const NAV = [
   { to: "/historico", label: "Histórico", icon: History },
   { to: "/templates", label: "Templates", icon: FileText },
   { to: "/playbook", label: "Playbook de ativação", icon: BookOpenCheck },
+  { to: "/daily", label: "Daily", icon: MessagesSquare },
+  { to: "/anexo", label: "Anexo", icon: Paperclip },
   { to: "/base", label: "Base geral", icon: Database },
 ] as const;
 
@@ -48,12 +52,12 @@ function MenuLateral() {
             <p className="mt-1.5 text-xs leading-snug text-white/75">Visão completa da jornada dos representantes.</p>
           </div>
         </div>
-        <nav className="relative z-10 mt-5 flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:gap-2 md:overflow-visible md:pb-0">
+        <nav className="relative z-10 mt-5 flex gap-1 overflow-x-auto px-3 pb-3 md:min-h-0 md:flex-col md:gap-0.5 md:overflow-x-hidden md:overflow-y-auto md:pb-0 [scrollbar-width:none]">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="menu-3d-item group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-3 text-[15px] font-bold text-white/85"
+              className="menu-3d-item group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-2 text-[15px] font-bold text-white/85"
               activeProps={{ className: "menu-3d-ativo text-white" }}
             >
               {({ isActive }) => (
@@ -75,7 +79,7 @@ function MenuLateral() {
             src="/brand/cardapinho-mesa.webp"
             alt=""
             aria-hidden
-            className="pointer-events-none mx-auto w-56 select-none drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
+            className="pointer-events-none mx-auto hidden w-48 select-none [@media(min-height:1000px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
           />
           <button
             onClick={() => sair(() => router.navigate({ to: "/auth" }))}
