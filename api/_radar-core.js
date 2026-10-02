@@ -187,6 +187,15 @@ const ACOES = {
     if (d.comentarios?.[duplaId]) d.comentarios[duplaId] = d.comentarios[duplaId].filter((x) => x.id !== comentarioId);
   },
 
+  /* ---- Playbook de ativação: checklist compartilhado ---- */
+  marcarPlaybook(d, { itemId, feito }, quem) {
+    const id = String(itemId ?? "").slice(0, 80);
+    if (!id) throw new ErroUso("Item inválido");
+    d.playbook ??= {};
+    if (feito) d.playbook[id] = { por: quem.email, em: new Date().toISOString() };
+    else delete d.playbook[id];
+  },
+
   /* ---- Templates de PSM ---- */
   salvarTemplate(d, { template }, quem) {
     const titulo = texto(template?.titulo, 120);

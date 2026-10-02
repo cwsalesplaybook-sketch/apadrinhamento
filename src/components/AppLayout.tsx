@@ -3,6 +3,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
+  BookOpenCheck,
   CalendarPlus,
   ChevronDown,
   ChevronRight,
@@ -26,6 +27,7 @@ const NAV = [
   { to: "/weeklies", label: "Weeklies", icon: CalendarPlus },
   { to: "/historico", label: "Histórico", icon: History },
   { to: "/templates", label: "Templates", icon: FileText },
+  { to: "/playbook", label: "Playbook de ativação", icon: BookOpenCheck },
   { to: "/base", label: "Base geral", icon: Database },
 ] as const;
 

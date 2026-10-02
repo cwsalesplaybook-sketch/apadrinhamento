@@ -100,6 +100,8 @@ export interface DadosRadar {
   pessoas?: Record<string, Pessoa>;
   comentarios?: Record<string, ComentarioLideranca[]>;
   templates?: Template[];
+  /** Checklist do Playbook de ativação: itemId -> quem marcou e quando. */
+  playbook?: Record<string, { por: string; em: string }>;
 }
 
 type Acao =
@@ -116,6 +118,7 @@ type Acao =
   | { acao: "apagarComentarioLideranca"; duplaId: string; comentarioId: string }
   | { acao: "salvarTemplate"; template: Partial<Template> }
   | { acao: "apagarTemplate"; templateId: string }
+  | { acao: "marcarPlaybook"; itemId: string; feito: boolean }
   | { acao: "apagarDupla"; duplaId: string };
 
 export async function chamar<T>(init?: RequestInit): Promise<T> {

@@ -21,6 +21,7 @@ import { WeekliesPage } from "@/routes/weeklies";
 import { WeeklyPage } from "@/routes/weekly";
 import { HistoricoPage } from "@/routes/historico";
 import { TemplatesPage } from "@/routes/templates";
+import { PlaybookPage } from "@/routes/playbook";
 import "./styles.css";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,11 @@ const templatesRoute = createRoute({
   path: "/templates",
   component: TemplatesPage,
 });
+const playbookRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/playbook",
+  component: PlaybookPage,
+});
 const baseRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/base", component: BasePage });
 const weekliesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
@@ -105,7 +111,7 @@ const weeklyRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, templatesRoute, baseRoute, weekliesRoute, weeklyRoute]),
+  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, templatesRoute, playbookRoute, baseRoute, weekliesRoute, weeklyRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });
