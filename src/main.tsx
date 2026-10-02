@@ -1,0 +1,110 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  Link,
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  redirect,
+} from "@tanstack/react-router";
+import { Toaster } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { AuthPage } from "@/routes/auth";
+import { PainelPage } from "@/routes/painel";
+import { DuplasPage } from "@/routes/duplas";
+import { BasePage } from "@/routes/base";
+import { WeekliesPage } from "@/routes/weeklies";
+import { WeeklyPage } from "@/routes/weekly";
+import "./styles.css";
+
+const queryClient = new QueryClient();
+
+function NotFound() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-7xl font-bold text-foreground">404</h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
+        <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>
+        <div className="mt-6">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Voltar ao início
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const rootRoute = createRootRoute({
+  component: () => (
+    <>
+      <Outlet />
+      <Toaster richColors position="top-right" />
+    </>
+  ),
+  notFoundComponent: NotFound,
+});
+
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/painel" });
+  },
+});
+
+const authRoute = createRoute({ getParentRoute: () => rootRoute, path: "/auth", component: AuthPage });
+
+const authenticatedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "_authenticated",
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/auth" });
+    return { user: data.user };
+  },
+  component: Outlet,
+});
+
+const painelRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/painel", component: PainelPage });
+const duplasRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas", component: DuplasPage });
+const baseRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/base", component: BasePage });
+const weekliesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/weeklies",
+  component: WeekliesPage,
+});
+const weeklyRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/weeklies/$id",
+  component: WeeklyPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  authRoute,
+  authenticatedRoute.addChildren([painelRoute, duplasRoute, baseRoute, weekliesRoute, weeklyRoute]),
+]);
+
+const router = createRouter({ routeTree, defaultPreload: "intent" });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  </StrictMode>,
+);
