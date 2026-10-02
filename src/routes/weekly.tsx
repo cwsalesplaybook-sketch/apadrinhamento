@@ -32,7 +32,7 @@ interface Acao {
 }
 
 const COR_SITUACAO: Record<Situacao, string> = {
-  no_ritmo: "bg-success text-success-foreground",
+  no_ritmo: "bg-primary text-primary-foreground",
   atencao: "bg-warning text-warning-foreground",
   risco: "bg-destructive text-destructive-foreground",
   concluida: "bg-ink text-ink-foreground",
@@ -154,7 +154,7 @@ export function WeeklyPage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <section className="space-y-4 rounded-2xl border bg-card p-5">
-            <h2 className="text-lg font-semibold">Ata e decisões</h2>
+            <h2 className="text-lg font-black text-ink">Ata e decisões</h2>
             <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
               <div className="space-y-1">
                 <Label className="text-xs">Data</Label>
@@ -186,7 +186,7 @@ export function WeeklyPage() {
           </section>
 
           <section className="rounded-2xl border bg-card p-5">
-            <h2 className="text-lg font-semibold">Status por dupla</h2>
+            <h2 className="text-lg font-black text-ink">Status por dupla</h2>
             {data.duplas.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma dupla ativa.</p>}
             <div className="mt-4 space-y-3">
               {data.duplas.map((d) => {
@@ -230,7 +230,7 @@ export function WeeklyPage() {
         </div>
 
         <section className="h-fit rounded-2xl border bg-card p-5">
-          <h2 className="text-lg font-semibold">Próximos passos</h2>
+          <h2 className="text-lg font-black text-ink">Próximos passos</h2>
           <form onSubmit={adicionarAcao} className="mt-4 space-y-2">
             <Input
               placeholder="Ação"

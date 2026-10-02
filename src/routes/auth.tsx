@@ -35,30 +35,37 @@ export function AuthPage() {
 
   return (
     <div className="grid min-h-screen md:grid-cols-2">
-      <div className="hidden flex-col justify-between bg-ink p-12 text-ink-foreground md:flex">
-        <div className="text-xs uppercase tracking-[0.25em] opacity-60">Cardápio Web · Programa de Representantes</div>
-        <div>
-          <h1 className="text-5xl font-semibold leading-tight">
-            Do treino à <span className="text-primary">primeira venda</span>.
-          </h1>
-          <p className="mt-4 max-w-md opacity-70">
-            Acompanhe as duplas, registre as weeklies e veja os indicadores do ciclo.
-          </p>
-        </div>
-        <div className="flex gap-10 text-sm opacity-80">
-          <div>
-            <div className="num text-3xl text-primary">4/6</div>
-            ativação até D30
-          </div>
-          <div>
-            <div className="num text-3xl text-primary">3/6</div>
-            autonomia até D60
+      <div className="pattern-cw relative hidden overflow-hidden p-10 md:flex md:items-center md:justify-center">
+        <div className="relative z-10 w-full max-w-md rounded-3xl bg-ink p-9 text-ink-foreground shadow-2xl">
+          <img src="/brand/logo-cw-eminence.webp" alt="Cardápio Web" className="h-20" />
+          <h1 className="titulo-h1 mt-6 text-5xl leading-none">RADAR DOS REPS</h1>
+          <p className="titulo-h2 mt-3 text-lg text-warning">Visão completa da jornada dos representantes.</p>
+          <div className="mt-8 flex gap-10 text-sm">
+            <div>
+              <div className="num text-3xl text-warning">4/6</div>
+              ativação até D30
+            </div>
+            <div>
+              <div className="num text-3xl text-warning">3/6</div>
+              autonomia até D60
+            </div>
           </div>
         </div>
+        <img
+          src="/brand/cardapinho-trofeu.webp"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 right-6 z-20 h-64 select-none drop-shadow-2xl"
+        />
       </div>
-      <div className="flex items-center justify-center p-6">
+      <div className="flex items-start justify-center p-6 md:items-center">
         <form onSubmit={enviar} className="w-full max-w-sm space-y-5">
-          <h2 className="text-2xl font-semibold">{modo === "entrar" ? "Entrar" : "Criar conta"}</h2>
+          <div className="-mx-6 -mt-6 mb-2 rounded-b-3xl bg-ink px-6 py-6 md:hidden">
+            <img src="/brand/logo-cw-eminence.webp" alt="Cardápio Web" className="h-12" />
+            <div className="titulo-h1 mt-3 text-2xl text-ink-foreground">RADAR DOS REPS</div>
+            <p className="titulo-h2 text-sm text-warning">Visão completa da jornada dos representantes.</p>
+          </div>
+          <h2 className="titulo-h1 text-3xl text-ink">{modo === "entrar" ? "Entrar" : "Criar conta"}</h2>
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />

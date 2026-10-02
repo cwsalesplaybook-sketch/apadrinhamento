@@ -72,7 +72,7 @@ export function BasePage() {
   const card = (titulo: string, valor: string, nota?: string) => (
     <div className="rounded-2xl border bg-card p-5">
       <div className="text-sm text-muted-foreground">{titulo}</div>
-      <div className="num mt-2 text-3xl font-semibold">{valor}</div>
+      <div className="num mt-2 text-3xl text-ink">{valor}</div>
       {nota && <div className="text-xs text-muted-foreground">{nota}</div>}
     </div>
   );
@@ -101,7 +101,7 @@ export function BasePage() {
       )}
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <section className="rounded-2xl border bg-card p-5">
-          <h2 className="text-lg font-semibold">Evolução</h2>
+          <h2 className="text-lg font-black text-ink">Evolução</h2>
           {snapshots.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Nenhum registro ainda.</p>
           ) : (
@@ -172,7 +172,7 @@ export function BasePage() {
           )}
         </section>
         <form onSubmit={registrar} className="h-fit space-y-3 rounded-2xl border bg-card p-5">
-          <h2 className="text-lg font-semibold">Nova fotografia</h2>
+          <h2 className="text-lg font-black text-ink">Nova fotografia</h2>
           {CAMPOS.map(([campo, rotulo, tipo]) => (
             <div key={campo} className="space-y-1">
               <Label className="text-xs">{rotulo}</Label>

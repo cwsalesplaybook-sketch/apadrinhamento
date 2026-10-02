@@ -1,51 +1,80 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Tipografia oficial (manual de identidade visual Cardápio Web 2023):
+   Museo Sans Rounded 1000 para H1, 500 para texto corrido e subtítulos. */
+@font-face {
+  font-family: "Museo Sans Rounded";
+  src: url("./assets/fonts/museosansrounded-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Museo Sans Rounded";
+  src: url("./assets/fonts/museosansrounded-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Museo Sans Rounded";
+  src: url("./assets/fonts/museosansrounded-900.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Museo Sans Rounded";
+  src: url("./assets/fonts/museosansrounded-1000.woff2") format("woff2");
+  font-weight: 1000;
+  font-display: swap;
+}
+
+/* Paleta oficial: Purple Heart #A543FA, Eminence #59327A, Carnation #FF5959,
+   Selective Yellow #FFB600, Magnolia #F4EDF7. Os demais tons são variações delas. */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(97.5% 0.008 75);
-  --foreground: oklch(22% 0.02 40);
-  --card: oklch(99.5% 0.004 75);
-  --card-foreground: oklch(22% 0.02 40);
-  --popover: oklch(99.5% 0.004 75);
-  --popover-foreground: oklch(22% 0.02 40);
-  --primary: oklch(62% 0.19 35);
-  --primary-foreground: oklch(99% 0.005 75);
-  --secondary: oklch(94% 0.02 70);
-  --secondary-foreground: oklch(30% 0.03 40);
-  --muted: oklch(94.5% 0.012 75);
-  --muted-foreground: oklch(50% 0.02 45);
-  --accent: oklch(93% 0.04 60);
-  --accent-foreground: oklch(30% 0.05 40);
-  --destructive: oklch(55% 0.2 25);
-  --destructive-foreground: oklch(99% 0 0);
-  --success: oklch(60% 0.13 155);
-  --success-foreground: oklch(99% 0 0);
-  --warning: oklch(78% 0.15 80);
-  --warning-foreground: oklch(25% 0.04 60);
-  --ink: oklch(22% 0.02 40);
-  --ink-foreground: oklch(97% 0.01 75);
-  --border: oklch(90% 0.015 70);
-  --input: oklch(88% 0.015 70);
-  --ring: oklch(62% 0.19 35);
-  --chart-1: oklch(62% 0.19 35);
-  --chart-2: oklch(60% 0.13 155);
-  --chart-3: oklch(78% 0.15 80);
-  --chart-4: oklch(45% 0.08 250);
-  --chart-5: oklch(55% 0.04 45);
-  --sidebar: oklch(22% 0.02 40);
-  --sidebar-foreground: oklch(92% 0.01 75);
-  --sidebar-primary: oklch(62% 0.19 35);
-  --sidebar-primary-foreground: oklch(99% 0 0);
-  --sidebar-accent: oklch(30% 0.025 40);
-  --sidebar-accent-foreground: oklch(98% 0.01 75);
-  --sidebar-border: oklch(32% 0.02 40);
-  --sidebar-ring: oklch(62% 0.19 35);
+  --radius: 0.875rem;
+  --background: #f4edf7;
+  --foreground: #59327a;
+  --card: #ffffff;
+  --card-foreground: #59327a;
+  --popover: #ffffff;
+  --popover-foreground: #59327a;
+  --primary: #a543fa;
+  --primary-foreground: #ffffff;
+  --secondary: #f4edf7;
+  --secondary-foreground: #59327a;
+  --muted: #efe5f5;
+  --muted-foreground: #8b6ea6;
+  --accent: #f4edf7;
+  --accent-foreground: #59327a;
+  --destructive: #ff5959;
+  --destructive-foreground: #ffffff;
+  --success: #a543fa;
+  --success-foreground: #ffffff;
+  --warning: #ffb600;
+  --warning-foreground: #59327a;
+  --ink: #59327a;
+  --ink-foreground: #f4edf7;
+  --border: #e8dcef;
+  --input: #ddcbe9;
+  --ring: #a543fa;
+  --chart-1: #a543fa;
+  --chart-2: #ffb600;
+  --chart-3: #ff5959;
+  --chart-4: #59327a;
+  --chart-5: #f4edf7;
+  --sidebar: #59327a;
+  --sidebar-foreground: #f4edf7;
+  --sidebar-primary: #a543fa;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #6a3f90;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #6a3f90;
+  --sidebar-ring: #ffb600;
 }
 
 @theme inline {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Museo Sans Rounded", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Museo Sans Rounded", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -99,20 +128,45 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    font-weight: 500;
   }
   h1,
   h2,
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer components {
   .num {
     font-family: var(--font-display);
+    font-weight: 900;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+  }
+  /* H1 do manual: Museo Sans Rounded 1000 */
+  .titulo-h1 {
+    font-weight: 1000;
+    letter-spacing: -0.01em;
+  }
+  /* H2 do manual: Museo Sans Rounded 500 itálico, para subtítulos e descrições de títulos */
+  .titulo-h2 {
+    font-weight: 500;
+    font-style: italic;
+  }
+  /* Rótulo de seção no estilo do manual ("LOGOTIPO - PRINCIPAL"): caixa alta e espaçada */
+  .rotulo {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+  .pattern-cw {
+    background-color: var(--ink);
+    background-image: url("/brand/pattern-eminence.webp");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 }

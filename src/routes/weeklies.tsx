@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { AppLayout } from "@/components/AppLayout";
+import { AppLayout, Vazio } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { dataBR } from "@/lib/apadrinhamento";
 
@@ -50,9 +50,9 @@ export function WeekliesPage() {
     >
       <div className="space-y-3">
         {weeklies.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card p-10 text-center text-muted-foreground">
-            Nenhuma weekly registrada ainda.
-          </div>
+          <Vazio imagem="/brand/cardapinho-acenando.webp">
+            <p className="text-muted-foreground">Nenhuma weekly registrada ainda.</p>
+          </Vazio>
         )}
         {weeklies.map((w) => {
           const abertas = w.acoes.filter((a) => !a.concluida).length;
@@ -64,7 +64,7 @@ export function WeekliesPage() {
               className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-5 hover:border-primary"
             >
               <div>
-                <div className="num text-lg font-semibold">{dataBR(w.data)}</div>
+                <div className="num text-lg">{dataBR(w.data)}</div>
                 <div className="line-clamp-1 text-sm text-muted-foreground">{w.pauta || "Sem pauta registrada"}</div>
               </div>
               <div className="flex gap-6 text-sm">

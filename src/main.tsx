@@ -26,8 +26,9 @@ function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
+        <img src="/brand/cardapinho-acenando.webp" alt="" aria-hidden className="mx-auto mb-4 h-40 select-none" />
+        <h1 className="titulo-h1 text-7xl text-ink">404</h1>
+        <h2 className="titulo-h2 mt-2 text-xl text-primary">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>
         <div className="mt-6">
           <Link

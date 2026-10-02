@@ -114,11 +114,11 @@ export function DuplasPage() {
       }
     >
       <div className="overflow-x-auto rounded-2xl border bg-card">
-        <table className="w-full text-sm">
+        <table className="w-full whitespace-nowrap text-sm">
           <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               {COLUNAS.map((c) => (
-                <th key={c} className="px-4 py-3 font-medium">
+                <th key={c} className="px-3 py-3 font-medium">
                   {c}
                 </th>
               ))}
@@ -128,28 +128,29 @@ export function DuplasPage() {
             {duplas.length === 0 && (
               <tr>
                 <td colSpan={12} className="px-4 py-10 text-center text-muted-foreground">
+                  <img src="/brand/cardapinho-oculos.webp" alt="" aria-hidden className="mx-auto mb-3 h-32 select-none" />
                   Nenhuma dupla ainda. Clique em “Nova dupla”.
                 </td>
               </tr>
             )}
             {duplas.map((d) => (
               <tr key={d.id} className="border-t">
-                <td className="px-4 py-3 font-medium">{d.afilhado}</td>
-                <td className="px-4 py-3">{d.padrinho}</td>
-                <td className="px-4 py-3">{d.ciclo}</td>
-                <td className="num px-4 py-3">D{diasDesde(d.data_inicio)}</td>
-                <td className="px-4 py-3">
+                <td className="px-3 py-3 font-medium">{d.afilhado}</td>
+                <td className="px-3 py-3">{d.padrinho}</td>
+                <td className="px-3 py-3">{d.ciclo}</td>
+                <td className="num px-3 py-3">D{diasDesde(d.data_inicio)}</td>
+                <td className="px-3 py-3">
                   <span className="rounded-full bg-accent px-2 py-0.5 text-xs">{STATUS_LABEL[d.status] ?? d.status}</span>
                 </td>
-                <td className="num px-4 py-3">{reunioesFeitas(d)}/4</td>
-                <td className="num px-4 py-3">
+                <td className="num px-3 py-3">{reunioesFeitas(d)}/4</td>
+                <td className="num px-3 py-3">
                   {d.leads_entregues} <span className="text-muted-foreground">+{d.leads_novos}</span>
                 </td>
-                <td className="px-4 py-3">{pct(aderencia(d))}</td>
-                <td className="px-4 py-3">{dataBR(d.venda_originada)}</td>
-                <td className="px-4 py-3">{dataBR(d.venda_conduzida)}</td>
-                <td className="num px-4 py-3">{(Number(d.horas_padrinho) + Number(d.horas_psm)).toFixed(1)}h</td>
-                <td className="px-4 py-3">
+                <td className="px-3 py-3">{pct(aderencia(d))}</td>
+                <td className="px-3 py-3">{dataBR(d.venda_originada)}</td>
+                <td className="px-3 py-3">{dataBR(d.venda_conduzida)}</td>
+                <td className="num px-3 py-3">{(Number(d.horas_padrinho) + Number(d.horas_psm)).toFixed(1)}h</td>
+                <td className="px-3 py-3">
                   <div className="flex gap-1">
                     <Button size="icon" variant="ghost" onClick={() => setEditando(d as Rascunho)} aria-label="Editar">
                       <Pencil className="h-4 w-4" />
@@ -204,21 +205,21 @@ export function DuplasPage() {
                 </div>
               </div>
               <fieldset className="grid gap-3 sm:grid-cols-4">
-                <legend className="mb-2 text-sm font-semibold">Fluxo ABC — datas das reuniões</legend>
+                <legend className="rotulo mb-2 text-xs text-primary">Fluxo ABC — datas das reuniões</legend>
                 {campo("reuniao1", "Reunião 1", "date")}
                 {campo("reuniao2", "Reunião 2", "date")}
                 {campo("reuniao3", "Reunião 3", "date")}
                 {campo("reuniao4", "Reunião 4", "date")}
               </fieldset>
               <fieldset className="grid gap-3 sm:grid-cols-4">
-                <legend className="mb-2 text-sm font-semibold">Leads e check-ins</legend>
+                <legend className="rotulo mb-2 text-xs text-primary">Leads e check-ins</legend>
                 {campo("leads_entregues", "Leads iniciais", "number")}
                 {campo("leads_novos", "Leads novos", "number")}
                 {campo("checkins_realizados", "Check-ins feitos", "number")}
                 {campo("checkins_faltados", "Check-ins faltados", "number")}
               </fieldset>
               <fieldset className="grid gap-3 sm:grid-cols-4">
-                <legend className="mb-2 text-sm font-semibold">Vendas e horas</legend>
+                <legend className="rotulo mb-2 text-xs text-primary">Vendas e horas</legend>
                 {campo("venda_originada", "1ª venda originada", "date")}
                 {campo("venda_conduzida", "1ª venda conduzida", "date")}
                 {campo("horas_padrinho", "Horas padrinho", "number")}

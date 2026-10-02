@@ -1,8 +1,14 @@
-# Apadrinhamento — Programa de Representantes
+# Radar dos Reps
+
+Visão completa da jornada dos representantes.
 
 Clone local de https://sweet-sponsor-hub.lovable.app, reconstruído a partir do código publicado
 (o projeto Lovable original está em outra conta). Telas: login, Painel, Duplas, Weeklies (lista e
 detalhe) e Base geral — conferidas pixel a pixel contra o original.
+
+Identidade visual segue o manual oficial da Cardápio Web (2023): paleta Purple Heart, Eminence,
+Carnation, Selective Yellow e Magnolia; fonte Museo Sans Rounded (`src/assets/fonts`); logo, pattern e
+mascotes "cardapinho" em `public/brand`.
 
 Stack: Vite + React + TypeScript, Tailwind v4, TanStack Router e Query, Supabase.
 
