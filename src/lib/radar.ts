@@ -76,7 +76,7 @@ type Acao =
   | { acao: "registrar"; duplaId: string; mudancas: Mudanca[] }
   | { acao: "apagarDupla"; duplaId: string };
 
-async function chamar<T>(init?: RequestInit): Promise<T> {
+export async function chamar<T>(init?: RequestInit): Promise<T> {
   const { data } = await supabase.auth.getSession();
   const res = await fetch("/api/radar", {
     ...init,

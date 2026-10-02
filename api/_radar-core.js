@@ -3,6 +3,7 @@
 // gravado com ETag (ifMatch) para duas pessoas salvando ao mesmo tempo não se sobrescreverem.
 
 import { randomUUID } from "node:crypto";
+import { ciclos } from "./_ciclos.js";
 
 const ARQUIVO = "radar/dados.json";
 
@@ -262,6 +263,11 @@ export async function tratar(request) {
     }
     if (request.method === "POST") {
       const corpo = await request.json();
+      // Aba Histórico: lista (e fecha, se a semana acabou) os ciclos semanais.
+      if (corpo?.acao === "ciclos" || corpo?.acao === "fecharCiclo") {
+        const { dados } = await (await armazenamento()).ler();
+        return json(await ciclos({ duplas: corpo.duplas, dados, quem, fecharAgora: corpo.acao === "fecharCiclo" }));
+      }
       const acao = ACOES[corpo?.acao];
       if (!acao) return json({ erro: "Ação desconhecida" }, 400);
       const { dados, resultado } = await alterar((d) => acao(d, corpo, quem));
@@ -269,7 +275,7 @@ export async function tratar(request) {
     }
     return json({ erro: "Método não permitido" }, 405);
   } catch (e) {
-    if (e instanceof ErroUso) return json({ erro: e.message }, 400);
+    if (e instanceof ErroUso || e?.uso) return json({ erro: e.message }, 400);
     console.error(e);
     return json({ erro: "Não consegui salvar agora. Tente de novo." }, 500);
   }

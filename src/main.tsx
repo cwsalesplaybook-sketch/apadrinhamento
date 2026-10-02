@@ -19,6 +19,7 @@ import { DuplaPage } from "@/routes/dupla";
 import { BasePage } from "@/routes/base";
 import { WeekliesPage } from "@/routes/weeklies";
 import { WeeklyPage } from "@/routes/weekly";
+import { HistoricoPage } from "@/routes/historico";
 import "./styles.css";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,11 @@ const authenticatedRoute = createRoute({
 const painelRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/painel", component: PainelPage });
 const duplasRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas", component: DuplasPage });
 const duplaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas/$id", component: DuplaPage });
+const historicoRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/historico",
+  component: HistoricoPage,
+});
 const baseRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/base", component: BasePage });
 const weekliesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
@@ -93,7 +99,7 @@ const weeklyRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, baseRoute, weekliesRoute, weeklyRoute]),
+  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, baseRoute, weekliesRoute, weeklyRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });
