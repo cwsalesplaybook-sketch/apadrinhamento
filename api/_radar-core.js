@@ -34,7 +34,11 @@ function vazio() {
 /* ---------- armazenamento ---------- */
 
 async function armazenamentoBlob() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) throw new ErroUso("O armazenamento dos funis ainda não foi conectado na Vercel.");
+  // Store conectado ao projeto: token clássico ou OIDC (BLOB_STORE_ID), que o SDK resolve sozinho.
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+    console.error("Blob sem credenciais. Variáveis BLOB*:", Object.keys(process.env).filter((k) => k.includes("BLOB")));
+    throw new ErroUso("O armazenamento dos funis ainda não foi conectado na Vercel.");
+  }
   const { get, put, BlobPreconditionFailedError } = await import("@vercel/blob");
   return {
     async ler() {
@@ -82,7 +86,7 @@ async function armazenamentoLocal() {
 }
 
 const armazenamento = () =>
-  process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL ? armazenamentoBlob() : armazenamentoLocal();
+  process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID || process.env.VERCEL ? armazenamentoBlob() : armazenamentoLocal();
 
 async function alterar(fn) {
   const a = await armazenamento();

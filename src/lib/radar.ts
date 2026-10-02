@@ -56,6 +56,7 @@ export function useRadar() {
     queryKey: ["radar"],
     queryFn: () => chamar<DadosRadar>(),
     refetchOnWindowFocus: true,
+    retry: 1,
   });
 }
 
