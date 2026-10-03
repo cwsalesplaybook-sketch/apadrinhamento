@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarCheck, ChevronDown, Crown, History, Lock, Search, StickyNote } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, CalendarCheck, ChevronDown, Crown, History, Search, StickyNote } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { STATUS_LABEL, dataBR, type Dupla, type StatusDupla } from "@/lib/apadrinhamento";
 import { chamar, dataHoraBR, type Mudanca } from "@/lib/radar";
 
-/* Ciclos de 1 semana (segunda a domingo). O servidor fecha e salva cada semana sozinho;
-   "Fechar ciclo agora" salva antes. Ver api/_ciclos.js. */
+/* Ciclos de 7 dias (segunda 00:00 a domingo 23:59). O servidor salva cada semana sozinho
+   toda segunda-feira (agendamento da Vercel); não há fechamento manual. Ver api/_ciclos.js. */
 
 interface FotoDupla {
   id: string;
@@ -59,7 +57,6 @@ function periodo(inicio: string, fim: string) {
 const autorCurto = (email: string) => email.split("@")[0];
 
 export function HistoricoPage() {
-  const qc = useQueryClient();
   const [selecionado, setSelecionado] = useState<number | null>(null);
   const [busca, setBusca] = useState("");
   const [soMovimento, setSoMovimento] = useState(false);
@@ -77,16 +74,6 @@ export function HistoricoPage() {
     queryKey: ["ciclos", duplas?.length],
     enabled: !!duplas,
     queryFn: () => chamar<RespostaCiclos>({ method: "POST", body: JSON.stringify({ acao: "ciclos", duplas }) }),
-  });
-
-  const fechar = useMutation({
-    mutationFn: () => chamar<RespostaCiclos>({ method: "POST", body: JSON.stringify({ acao: "fecharCiclo", duplas }) }),
-    onSuccess: (r) => {
-      qc.setQueryData(["ciclos", duplas?.length], r);
-      setSelecionado(r.ciclos[0]?.numero ?? null);
-      toast.success(`Ciclo ${r.ciclos[0]?.numero} fechado e salvo no histórico`);
-    },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const r = ciclos.data;
@@ -112,17 +99,7 @@ export function HistoricoPage() {
     <AppLayout
       icon={History}
       title="Histórico"
-      subtitle="Ciclos de 1 semana, salvos automaticamente"
-      actions={
-        <Button
-          disabled={!r || fechar.isPending}
-          onClick={() =>
-            confirm("Fechar o ciclo atual agora e salvar no histórico? Um novo ciclo começa em seguida.") && fechar.mutate()
-          }
-        >
-          <Lock className="h-4 w-4" /> Fechar ciclo agora
-        </Button>
-      }
+      subtitle="Ciclos de 7 dias (segunda a domingo), salvos automaticamente toda semana"
     >
       {ciclos.isError ? (
         <div className="cartao px-6 py-10 text-center text-muted-foreground">
@@ -177,8 +154,8 @@ export function HistoricoPage() {
             </label>
             <span className="ml-auto text-xs text-muted-foreground">
               {"fechadoEm" in atual && !atual.aberto
-                ? `Salvo em ${dataHoraBR(atual.fechadoEm)} · ${atual.automatico ? "fechamento automático" : `fechado por ${autorCurto(atual.fechadoPor)}`}`
-                : `Fecha sozinho em ${dataHoraBR(atual.fim)} · comparando com o ciclo ${anterior?.numero ?? "—"}`}
+                ? `Semana salva em ${dataHoraBR(atual.fechadoEm)}`
+                : `Semana em andamento · salva sozinha em ${dataHoraBR(atual.fim)} · comparando com o ciclo ${anterior?.numero ?? "—"}`}
             </span>
           </div>
 

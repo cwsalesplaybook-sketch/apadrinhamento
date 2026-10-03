@@ -3,7 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowDown,
+  Check,
+  CheckSquare,
   Crown,
+  MessageSquarePlus,
+  X,
   ArrowUp,
   Columns3,
   FileText,
@@ -38,6 +42,7 @@ import {
   dataHoraBR,
   posicaoDa,
   useAcaoRadar,
+  useEu,
   useRadar,
   type DadosRadar,
   type Pipeline,
@@ -101,6 +106,21 @@ export function DuplasPage() {
   const navigate = useNavigate();
   const abrirDupla = (d: Dupla) => navigate({ to: "/duplas/$id", params: { id: d.id } });
   const [editandoFunis, setEditandoFunis] = useState(false);
+  const [selecionando, setSelecionando] = useState(false);
+  const [selecao, setSelecao] = useState<Set<string>>(new Set());
+  const [comentando, setComentando] = useState(false);
+  const alternar = (ids: string[], marcar?: boolean) =>
+    setSelecao((atual) => {
+      const nova = new Set(atual);
+      const ligar = marcar ?? !ids.every((id) => nova.has(id));
+      for (const id of ids) ligar ? nova.add(id) : nova.delete(id);
+      return nova;
+    });
+  const sairSelecao = () => {
+    setSelecionando(false);
+    setSelecao(new Set());
+  };
+  const clicarDupla = (d: Dupla) => (selecionando ? alternar([d.id]) : abrirDupla(d));
 
   const { data: duplas = [] } = useQuery({
     queryKey: ["duplas"],
@@ -144,6 +164,14 @@ export function DuplasPage() {
             </button>
           ))}
         </div>
+        <Button
+          variant={selecionando ? "default" : "outline"}
+          onClick={() => (selecionando ? sairSelecao() : setSelecionando(true))}
+          disabled={!radar.data}
+        >
+          {selecionando ? <X className="h-4 w-4" /> : <CheckSquare className="h-4 w-4" />}
+          {selecionando ? "Cancelar seleção" : "Selecionar"}
+        </Button>
         {visao === "funil" && radar.data && (
           <>
             <select
@@ -173,11 +201,52 @@ export function DuplasPage() {
         ) : !radar.data || !pipeline ? (
           <div className="cartao px-6 py-10 text-center text-muted-foreground">Carregando funil…</div>
         ) : (
-          <Kanban pipeline={pipeline} dados={radar.data} duplas={duplas} abrir={abrirDupla} />
+          <Kanban
+            pipeline={pipeline}
+            dados={radar.data}
+            duplas={duplas}
+            abrir={clicarDupla}
+            selecao={selecionando ? selecao : null}
+            alternar={alternar}
+          />
         )
       ) : (
-        <Lista duplas={duplas} dados={radar.data} abrir={abrirDupla} />
+        <Lista
+          duplas={duplas}
+          dados={radar.data}
+          abrir={clicarDupla}
+          selecao={selecionando ? selecao : null}
+          alternar={alternar}
+        />
       )}
+
+      {selecionando && (
+        <div className="barra-selecao fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 text-white">
+          <span className="text-sm font-bold">
+            {selecao.size === 0
+              ? "Toque nos cards para selecionar"
+              : `${selecao.size} ${selecao.size === 1 ? "dupla selecionada" : "duplas selecionadas"}`}
+          </span>
+          {selecao.size > 0 && (
+            <button onClick={() => setSelecao(new Set())} className="text-sm text-white/75 underline-offset-2 hover:underline">
+              Limpar
+            </button>
+          )}
+          <Button
+            className="bg-white bg-none text-primary shadow-none hover:bg-white/90"
+            disabled={selecao.size === 0}
+            onClick={() => setComentando(true)}
+          >
+            <MessageSquarePlus className="h-4 w-4" /> Comentar em {selecao.size || "…"}
+          </Button>
+        </div>
+      )}
+      <ComentarioEmMassa
+        aberto={comentando}
+        fechar={() => setComentando(false)}
+        duplas={duplas.filter((d) => selecao.has(d.id))}
+        aoConcluir={sairSelecao}
+      />
 
       <PainelDupla
         dupla={aberta}
@@ -202,16 +271,35 @@ export function DuplasPage() {
 
 /* ---------------- Funil (kanban) ---------------- */
 
+function Marcador({ marcado, parcial = false }: { marcado: boolean; parcial?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+        marcado || parcial ? "border-primary bg-primary text-white" : "border-[#d9c7ea] bg-white",
+      )}
+    >
+      {marcado ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : parcial ? <span className="h-0.5 w-2.5 rounded bg-white" /> : null}
+    </span>
+  );
+}
+
+type Selecao = Set<string> | null;
+
 function Kanban({
   pipeline,
   dados,
   duplas,
   abrir,
+  selecao,
+  alternar,
 }: {
   pipeline: Pipeline;
   dados: DadosRadar;
   duplas: Dupla[];
   abrir: (d: Dupla) => void;
+  selecao: Selecao;
+  alternar: (ids: string[], marcar?: boolean) => void;
 }) {
   const acao = useAcaoRadar();
   const [sobre, setSobre] = useState<string | null>(null);
@@ -242,7 +330,19 @@ function Kanban({
             )}
           >
             <header className="mb-3 flex items-center justify-between gap-2 px-1">
-              <h3 className="truncate text-sm font-black text-ink" title={etapa.nome}>
+              {selecao && cards.length > 0 && (
+                <button
+                  onClick={() => alternar(cards.map((d) => d.id))}
+                  title="Selecionar a coluna inteira"
+                  aria-label={`Selecionar todas de ${etapa.nome}`}
+                >
+                  <Marcador
+                    marcado={cards.every((d) => selecao.has(d.id))}
+                    parcial={cards.some((d) => selecao.has(d.id))}
+                  />
+                </button>
+              )}
+              <h3 className="mr-auto truncate text-sm font-black text-ink" title={etapa.nome}>
                 {etapa.nome}
               </h3>
               <span className="num rounded-full bg-white px-2.5 py-0.5 text-xs text-primary shadow-sm">{cards.length}</span>
@@ -254,15 +354,22 @@ function Kanban({
                 return (
                   <button
                     key={d.id}
-                    draggable
+                    draggable={!selecao}
                     onDragStart={(e) => {
                       e.dataTransfer.setData("text/plain", d.id);
                       e.dataTransfer.effectAllowed = "move";
                     }}
                     onClick={() => abrir(d)}
-                    className="cartao cursor-grab p-3.5 text-left transition-transform hover:-translate-y-0.5 active:cursor-grabbing"
+                    className={cn(
+                      "cartao p-3.5 text-left transition-transform hover:-translate-y-0.5",
+                      selecao ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+                      selecao?.has(d.id) && "ring-2 ring-primary",
+                    )}
                   >
-                    <div className="font-black leading-tight text-ink">{d.afilhado}</div>
+                    <div className="flex items-start gap-2">
+                      <div className="min-w-0 flex-1 font-black leading-tight text-ink">{d.afilhado}</div>
+                      {selecao && <Marcador marcado={selecao.has(d.id)} />}
+                    </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">Padrinho: {d.padrinho}</div>
                     <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
                       <span className="num rounded-full bg-primary/10 px-2 py-0.5 text-primary">D{diasDesde(d.data_inicio)}</span>
@@ -300,12 +407,34 @@ function Kanban({
 
 /* ---------------- Lista ---------------- */
 
-function Lista({ duplas, dados, abrir }: { duplas: Dupla[]; dados?: DadosRadar; abrir: (d: Dupla) => void }) {
+function Lista({
+  duplas,
+  dados,
+  abrir,
+  selecao,
+  alternar,
+}: {
+  duplas: Dupla[];
+  dados?: DadosRadar;
+  abrir: (d: Dupla) => void;
+  selecao: Selecao;
+  alternar: (ids: string[], marcar?: boolean) => void;
+}) {
   return (
     <div className="overflow-x-auto cartao">
       <table className="w-full whitespace-nowrap text-sm">
         <thead className="bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
+            {selecao && (
+              <th className="w-10 px-3 py-3">
+                <button onClick={() => alternar(duplas.map((d) => d.id))} aria-label="Selecionar todas">
+                  <Marcador
+                    marcado={duplas.length > 0 && duplas.every((d) => selecao.has(d.id))}
+                    parcial={duplas.some((d) => selecao.has(d.id))}
+                  />
+                </button>
+              </th>
+            )}
             {COLUNAS.map((c) => (
               <th key={c} className="px-3 py-3 font-medium">
                 {c}
@@ -316,14 +445,23 @@ function Lista({ duplas, dados, abrir }: { duplas: Dupla[]; dados?: DadosRadar; 
         <tbody>
           {duplas.length === 0 && (
             <tr>
-              <td colSpan={COLUNAS.length} className="px-4 py-10 text-center text-muted-foreground">
+              <td colSpan={COLUNAS.length + (selecao ? 1 : 0)} className="px-4 py-10 text-center text-muted-foreground">
                 <img src="/brand/cardapinho-oculos.webp" alt="" aria-hidden className="mx-auto mb-3 h-32 select-none" />
                 Nenhuma dupla ainda. Clique em “Nova dupla”.
               </td>
             </tr>
           )}
           {duplas.map((d) => (
-            <tr key={d.id} onClick={() => abrir(d)} className="cursor-pointer border-t transition-colors hover:bg-accent/60">
+            <tr
+              key={d.id}
+              onClick={() => abrir(d)}
+              className={cn("cursor-pointer border-t transition-colors hover:bg-accent/60", selecao?.has(d.id) && "bg-primary/10")}
+            >
+              {selecao && (
+                <td className="px-3 py-3">
+                  <Marcador marcado={selecao.has(d.id)} />
+                </td>
+              )}
               <td className="px-3 py-3 font-medium">{d.afilhado}</td>
               <td className="px-3 py-3">{d.padrinho}</td>
               <td className="px-3 py-3">{d.ciclo}</td>
@@ -345,6 +483,107 @@ function Lista({ duplas, dados, abrir }: { duplas: Dupla[]; dados?: DadosRadar; 
         </tbody>
       </table>
     </div>
+  );
+}
+
+/* ---------------- Comentário em massa ---------------- */
+
+function ComentarioEmMassa({
+  aberto,
+  fechar,
+  duplas,
+  aoConcluir,
+}: {
+  aberto: boolean;
+  fechar: () => void;
+  duplas: Dupla[];
+  aoConcluir: () => void;
+}) {
+  const acao = useAcaoRadar();
+  const { master } = useEu();
+  const [texto, setTexto] = useState("");
+  const [tipo, setTipo] = useState<"nota" | "lideranca">("nota");
+  useEffect(() => {
+    if (aberto) setTipo("nota");
+  }, [aberto]);
+
+  function enviar() {
+    if (!texto.trim()) return;
+    const duplaIds = duplas.map((d) => d.id);
+    const lideranca = tipo === "lideranca";
+    acao.mutate(
+      lideranca ? { acao: "comentarioLiderancaEmMassa", duplaIds, texto } : { acao: "notaEmMassa", duplaIds, texto },
+      {
+        onSuccess: () => {
+          const quantas = `${duplaIds.length} ${duplaIds.length === 1 ? "dupla" : "duplas"}`;
+          toast.success(lideranca ? `Comentário da Liderança adicionado em ${quantas}` : `Anotação adicionada em ${quantas}`);
+          setTexto("");
+          fechar();
+          aoConcluir();
+        },
+      },
+    );
+  }
+
+  return (
+    <Dialog open={aberto} onOpenChange={(a) => !a && fechar()}>
+      <DialogContent className="max-w-lg rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="titulo-h1 text-2xl text-ink">
+            Comentar em {duplas.length} {duplas.length === 1 ? "dupla" : "duplas"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
+          {duplas.map((d) => (
+            <span key={d.id} className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-bold text-ink">
+              {d.afilhado}
+            </span>
+          ))}
+        </div>
+        {master && (
+          <div className="flex gap-2 text-sm">
+            {(
+              [
+                ["nota", "Anotação"],
+                ["lideranca", "Comentário da Liderança"],
+              ] as const
+            ).map(([v, rotulo]) => (
+              <button
+                key={v}
+                onClick={() => setTipo(v)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 font-bold",
+                  tipo === v ? "bg-primary text-white" : "bg-accent text-ink",
+                )}
+              >
+                {v === "lideranca" && <Crown className="h-3.5 w-3.5" />} {rotulo}
+              </button>
+            ))}
+          </div>
+        )}
+        <Textarea
+          rows={5}
+          autoFocus
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) enviar();
+          }}
+          placeholder="Escreva o comentário. Ele entra separado em cada dupla selecionada."
+        />
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">Ctrl + Enter para enviar</span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fechar}>
+              Cancelar
+            </Button>
+            <Button onClick={enviar} disabled={!texto.trim() || acao.isPending}>
+              {acao.isPending ? "Enviando…" : `Comentar em ${duplas.length}`}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

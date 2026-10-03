@@ -6,3 +6,4 @@ dist
 *.tsbuildinfo
 .radar-local.json
 .radar-local-ciclos/
+.radar-local-*.json

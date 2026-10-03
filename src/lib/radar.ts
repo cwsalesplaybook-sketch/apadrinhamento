@@ -149,6 +149,8 @@ type Acao =
   | { acao: "salvarPipelines"; pipelines: Pipeline[] }
   | { acao: "mover"; duplaId: string; pipelineId: string; etapaId: string }
   | { acao: "nota"; duplaId: string; texto: string }
+  | { acao: "notaEmMassa"; duplaIds: string[]; texto: string }
+  | { acao: "comentarioLiderancaEmMassa"; duplaIds: string[]; texto: string }
   | { acao: "editarNota"; duplaId: string; notaId: string; texto: string }
   | { acao: "apagarNota"; duplaId: string; notaId: string }
   | { acao: "salvarPessoa"; duplaId: string; pessoa: Pessoa }

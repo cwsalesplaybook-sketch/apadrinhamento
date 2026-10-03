@@ -3,7 +3,7 @@
 // gravado com ETag (ifMatch) para duas pessoas salvando ao mesmo tempo não se sobrescreverem.
 
 import { randomUUID } from "node:crypto";
-import { ciclos } from "./_ciclos.js";
+import { ciclos, sincronizarDuplas } from "./_ciclos.js";
 
 const ARQUIVO = "radar/dados.json";
 
@@ -187,6 +187,19 @@ const ACOES = {
     if (d.comentarios?.[duplaId]) d.comentarios[duplaId] = d.comentarios[duplaId].filter((x) => x.id !== comentarioId);
   },
 
+  // Mesmo comentário em várias duplas de uma vez (seleção em massa na aba Duplas).
+  comentarioLiderancaEmMassa(d, { duplaIds, texto: t }, quem) {
+    exigirMaster(quem);
+    const ids = idsEmMassa(duplaIds);
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva o comentário");
+    d.comentarios ??= {};
+    const criadoEm = new Date().toISOString();
+    for (const id of ids)
+      (d.comentarios[id] ??= []).unshift({ id: randomUUID(), texto: conteudo.slice(0, 10000), autor: quem.email, criadoEm });
+    return { total: ids.length };
+  },
+
   /* ---- Playbook de ativação: checklist compartilhado ---- */
   marcarPlaybook(d, { itemId, feito }, quem) {
     const id = String(itemId ?? "").slice(0, 80);
@@ -276,6 +289,15 @@ const ACOES = {
     const nota = { id: randomUUID(), texto: conteudo.slice(0, 10000), autor: quem.email, criadoEm: new Date().toISOString() };
     (d.notas[duplaId] ??= []).unshift(nota);
     return nota;
+  },
+  notaEmMassa(d, { duplaIds, texto: t }, quem) {
+    const ids = idsEmMassa(duplaIds);
+    const conteudo = String(t ?? "").trim();
+    if (!conteudo) throw new ErroUso("Escreva a anotação");
+    const criadoEm = new Date().toISOString();
+    for (const id of ids)
+      (d.notas[id] ??= []).unshift({ id: randomUUID(), texto: conteudo.slice(0, 10000), autor: quem.email, criadoEm });
+    return { total: ids.length };
   },
   editarNota(d, { duplaId, notaId, texto: t }) {
     const nota = (d.notas[duplaId] ?? []).find((n) => n.id === notaId);
@@ -382,6 +404,13 @@ const ANEXOS_INICIAIS = () => [
   },
 ];
 
+function idsEmMassa(lista) {
+  const ids = [...new Set((Array.isArray(lista) ? lista : []).map((x) => String(x ?? "").trim()).filter(Boolean))];
+  if (ids.length === 0) throw new ErroUso("Selecione pelo menos uma dupla");
+  if (ids.length > 500) throw new ErroUso("Selecione no máximo 500 duplas de uma vez");
+  return ids;
+}
+
 /** "AAAA-MM-DD"; se vier inválida, usa hoje (horário de Brasília). */
 function dataValida(v) {
   const s = String(v ?? "");
@@ -409,8 +438,21 @@ function registrarEvento(d, duplaId, tipo, mudancas, quem) {
 const json = (corpo, status = 200) =>
   new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
+/** Agendamento da Vercel (vercel.json): fecha as semanas que já terminaram. */
+async function fechamentoAgendado(request) {
+  const segredo = process.env.CRON_SECRET;
+  if (segredo && request.headers.get("authorization") !== `Bearer ${segredo}`) return json({ erro: "Não autorizado" }, 401);
+  // Sem segredo configurado, qualquer chamada só consegue salvar semanas que já acabaram (nada a perder).
+  const { dados } = await (await armazenamento()).ler();
+  const r = await ciclos({ duplas: null, dados, quem: { email: "fechamento automático" }, automatico: true });
+  return json({ ok: true, fechados: r.fechadosAgora, abertoDesde: r.aberto.inicio });
+}
+
 export async function tratar(request) {
   try {
+    if (request.method === "GET" && new URL(request.url).searchParams.get("cron") === "ciclos")
+      return await fechamentoAgendado(request);
+
     const quem = await usuario(request);
     if (!quem) return json({ erro: "Faça login de novo" }, 401);
 
@@ -424,10 +466,14 @@ export async function tratar(request) {
     }
     if (request.method === "POST") {
       const corpo = await request.json();
-      // Aba Histórico: lista (e fecha, se a semana acabou) os ciclos semanais.
-      if (corpo?.acao === "ciclos" || corpo?.acao === "fecharCiclo") {
+      // Aba Histórico: lista os ciclos semanais (e salva as semanas que já acabaram).
+      if (corpo?.acao === "ciclos") {
         const { dados } = await (await armazenamento()).ler();
-        return json(await ciclos({ duplas: corpo.duplas, dados, quem, fecharAgora: corpo.acao === "fecharCiclo" }));
+        return json(await ciclos({ duplas: corpo.duplas, dados, quem }));
+      }
+      // O app manda a lista de duplas que acabou de ler, para o fechamento da semana usar dados atuais.
+      if (corpo?.acao === "sincronizarDuplas") {
+        return json({ ok: true, gravou: await sincronizarDuplas(corpo.duplas, quem) });
       }
       const acao = ACOES[corpo?.acao];
       if (!acao) return json({ erro: "Ação desconhecida" }, 400);

@@ -16,7 +16,6 @@ import { AuthPage } from "@/routes/auth";
 import { PainelPage } from "@/routes/painel";
 import { DuplasPage } from "@/routes/duplas";
 import { DuplaPage } from "@/routes/dupla";
-import { BasePage } from "@/routes/base";
 import { WeekliesPage } from "@/routes/weeklies";
 import { WeeklyPage } from "@/routes/weekly";
 import { HistoricoPage } from "@/routes/historico";
@@ -100,7 +99,6 @@ const playbookRoute = createRoute({
 });
 const dailyRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/daily", component: DailyPage });
 const anexosRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/anexo", component: AnexosPage });
-const baseRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/base", component: BasePage });
 const weekliesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/weeklies",
@@ -115,7 +113,7 @@ const weeklyRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, templatesRoute, playbookRoute, dailyRoute, anexosRoute, baseRoute, weekliesRoute, weeklyRoute]),
+  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, templatesRoute, playbookRoute, dailyRoute, anexosRoute, weekliesRoute, weeklyRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });

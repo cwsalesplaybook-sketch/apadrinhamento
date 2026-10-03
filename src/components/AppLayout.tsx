@@ -7,7 +7,6 @@ import {
   CalendarPlus,
   ChevronDown,
   ChevronRight,
-  Database,
   FileText,
   History,
   LayoutGrid,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { diasDesde, type Dupla } from "@/lib/apadrinhamento";
+import { chamar } from "@/lib/radar";
 
 type Icone = ComponentType<LucideProps>;
 
@@ -32,7 +32,6 @@ const NAV = [
   { to: "/playbook", label: "Playbook de ativação", icon: BookOpenCheck },
   { to: "/daily", label: "Daily", icon: MessagesSquare },
   { to: "/anexo", label: "Anexo", icon: Paperclip },
-  { to: "/base", label: "Base geral", icon: Database },
 ] as const;
 
 async function sair(navigate: () => void) {
@@ -104,10 +103,27 @@ function useFora(aberto: boolean, fechar: () => void) {
   return ref;
 }
 
+// Última lista de duplas enviada ao servidor nesta aba (evita reenviar a mesma).
+let duplasEnviadas = "";
+
+/** Mantém no servidor a lista de duplas mais recente: o fechamento semanal do Histórico usa essa foto. */
+function useSincronizarDuplas(duplas: Dupla[] | undefined) {
+  useEffect(() => {
+    if (!duplas) return;
+    const ordenadas = [...duplas].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    const assinatura = JSON.stringify(ordenadas);
+    if (assinatura === duplasEnviadas) return;
+    duplasEnviadas = assinatura;
+    chamar({ method: "POST", body: JSON.stringify({ acao: "sincronizarDuplas", duplas: ordenadas }) }).catch(() => {
+      duplasEnviadas = "";
+    });
+  }, [duplas]);
+}
+
 function Notificacoes() {
   const [aberto, setAberto] = useState(false);
   const ref = useFora(aberto, () => setAberto(false));
-  const { data: duplas = [] } = useQuery({
+  const { data: duplas = [], isSuccess } = useQuery({
     queryKey: ["duplas"],
     queryFn: async () => {
       const { data, error } = await supabase.from("duplas").select("*").order("data_inicio");
@@ -115,6 +131,7 @@ function Notificacoes() {
       return data as Dupla[];
     },
   });
+  useSincronizarDuplas(isSuccess ? duplas : undefined);
   const alertas = duplas
     .filter((d) => d.status !== "encerrado")
     .flatMap((d) => {
