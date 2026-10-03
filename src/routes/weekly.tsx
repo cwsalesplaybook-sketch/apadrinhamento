@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AppLayout } from "@/components/AppLayout";
+import { RotinaSemana } from "@/components/RotinaSemana";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { SITUACAO_LABEL, diasDesde, reunioesFeitas, type Dupla, type Situacao } from "@/lib/apadrinhamento";
@@ -152,6 +153,7 @@ export function WeeklyPage() {
         </div>
       }
     >
+      <RotinaSemana dataWeekly={data.weekly.data} />
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <section className="space-y-4 cartao p-5">

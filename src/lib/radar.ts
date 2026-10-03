@@ -143,7 +143,53 @@ export interface DadosRadar {
   daily?: PostDaily[];
   perfis?: Record<string, Perfil>;
   anexos?: Anexo[];
+  /** Rotina de cada pessoa (e-mail -> dias e indicadores próprios). Aba Weekly. */
+  rotina?: Record<string, Rotina>;
 }
+
+export interface Indicador {
+  id: string;
+  nome: string;
+}
+
+export interface DiaRotina {
+  valores: Record<string, number>;
+  nota?: string;
+  em: string;
+}
+
+export interface Rotina {
+  indicadores?: Indicador[];
+  /** "AAAA-MM-DD" -> números do dia */
+  dias?: Record<string, DiaRotina>;
+}
+
+/** Indicadores iniciais; cada pessoa pode renomear, tirar ou criar outros. */
+export const INDICADORES_PADRAO: Indicador[] = [
+  { id: "reunioes", nome: "Reuniões realizadas" },
+  { id: "noshow", nome: "No-show" },
+  { id: "agendadas", nome: "Reuniões agendadas" },
+  { id: "followups", nome: "Follow-ups" },
+];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const isoLocal = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+/** Os 7 dias (segunda a domingo, "AAAA-MM-DD") da semana que contém `dataISO`. */
+export function diasDaSemana(dataISO: string) {
+  const [a, m, d] = dataISO.split("-").map(Number);
+  const base = new Date(a, m - 1, d);
+  const desdeSegunda = (base.getDay() + 6) % 7;
+  return Array.from({ length: 7 }, (_, i) => isoLocal(new Date(a, m - 1, d - desdeSegunda + i)));
+}
+
+/** Mesma data deslocada em dias (para comparar com a semana anterior). */
+export function somarDias(dataISO: string, dias: number) {
+  const [a, m, d] = dataISO.split("-").map(Number);
+  return isoLocal(new Date(a, m - 1, d + dias));
+}
+
+export const hojeISO = () => isoLocal(new Date());
 
 type Acao =
   | { acao: "salvarPipelines"; pipelines: Pipeline[] }
@@ -169,6 +215,8 @@ type Acao =
   | { acao: "salvarPerfil"; foto?: string; nome?: string }
   | { acao: "salvarAnexo"; anexo: Partial<Anexo> }
   | { acao: "apagarAnexo"; anexoId: string }
+  | { acao: "salvarRotinaDia"; data: string; valores: Record<string, number | "">; nota: string }
+  | { acao: "salvarIndicadoresRotina"; indicadores: Indicador[] }
   | { acao: "apagarDupla"; duplaId: string };
 
 export async function chamar<T>(init?: RequestInit): Promise<T> {

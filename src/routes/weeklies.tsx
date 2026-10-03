@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { AppLayout, Vazio } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { dataBR } from "@/lib/apadrinhamento";
+import { diasDaSemana, useEu, useRadar } from "@/lib/radar";
 
 interface WeeklyResumo {
   id: string;
@@ -16,6 +17,8 @@ interface WeeklyResumo {
 }
 
 export function WeekliesPage() {
+  const radar = useRadar();
+  const { email: eu } = useEu();
   const navigate = useNavigate();
   const { data: weeklies = [] } = useQuery({
     queryKey: ["weeklies"],
@@ -57,6 +60,11 @@ export function WeekliesPage() {
         )}
         {weeklies.map((w) => {
           const abertas = w.acoes.filter((a) => !a.concluida).length;
+          const semana = w.data ? diasDaSemana(w.data) : [];
+          const soma = (id: string) =>
+            semana.reduce((s, dia) => s + (radar.data?.rotina?.[eu]?.dias?.[dia]?.valores[id] ?? 0), 0);
+          const reunioes = soma("reunioes");
+          const noshow = soma("noshow");
           return (
             <Link
               key={w.id}
@@ -69,6 +77,11 @@ export function WeekliesPage() {
                 <div className="line-clamp-1 text-sm text-muted-foreground">{w.pauta || "Sem pauta registrada"}</div>
               </div>
               <div className="flex gap-6 text-sm">
+                {(reunioes > 0 || noshow > 0) && (
+                  <span title="Da sua rotina nessa semana">
+                    <b className="num">{reunioes}</b> reuniões · <b className="num">{noshow}</b> no-show
+                  </span>
+                )}
                 <span>
                   <b className="num">{w.weekly_updates.length}</b> atualizações
                 </span>

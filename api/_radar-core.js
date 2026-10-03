@@ -310,6 +310,32 @@ const ACOES = {
   apagarNota(d, { duplaId, notaId }) {
     d.notas[duplaId] = (d.notas[duplaId] ?? []).filter((n) => n.id !== notaId);
   },
+  /* ---- Rotina (aba Weekly): números do dia de cada pessoa ---- */
+  // Cada pessoa só grava a própria rotina (chave = e-mail de quem está logado).
+  salvarRotinaDia(d, { data, valores, nota }, quem) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data ?? ""))) throw new ErroUso("Data inválida");
+    d.rotina ??= {};
+    const minha = (d.rotina[String(quem.email).toLowerCase()] ??= { dias: {} });
+    minha.dias ??= {};
+    const limpos = {};
+    for (const [chave, v] of Object.entries(valores ?? {}).slice(0, 30)) {
+      if (v === "" || v === null || v === undefined) continue;
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 0 || n > 100000) throw new ErroUso("Use só números entre 0 e 100000");
+      limpos[String(chave).slice(0, 40)] = Math.round(n * 100) / 100;
+    }
+    const texto = String(nota ?? "").trim().slice(0, 2000);
+    if (Object.keys(limpos).length === 0 && !texto) delete minha.dias[data];
+    else minha.dias[data] = { valores: limpos, ...(texto ? { nota: texto } : {}), em: new Date().toISOString() };
+  },
+  salvarIndicadoresRotina(d, { indicadores }, quem) {
+    if (!Array.isArray(indicadores) || indicadores.length === 0) throw new ErroUso("Mantenha pelo menos um indicador");
+    if (indicadores.length > 12) throw new ErroUso("No máximo 12 indicadores");
+    d.rotina ??= {};
+    const minha = (d.rotina[String(quem.email).toLowerCase()] ??= { dias: {} });
+    minha.indicadores = indicadores.map((i) => ({ id: String(i.id || randomUUID()).slice(0, 40), nome: texto(i.nome, 40) }));
+  },
+
   /* ---- Daily: feed de atualizações ---- */
   postarDaily(d, { texto: t, data }, quem) {
     const conteudo = String(t ?? "").trim();
