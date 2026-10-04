@@ -158,8 +158,31 @@ export interface DiaRotina {
   em: string;
 }
 
+export type StatusReuniao = "realizada" | "noshow" | "remarcada" | "cancelada";
+
+export interface ReuniaoMarcada {
+  status: StatusReuniao;
+  data: string;
+  titulo: string;
+  inicio: string;
+  em: string;
+}
+
+/** Evento da agenda (iCal) devolvido por /api/radar { acao: "agenda" }. */
+export interface EventoAgenda {
+  id: string;
+  titulo: string;
+  inicio: string;
+  fim: string;
+  data: string;
+  convidados: string[];
+  local: string;
+}
+
 export interface Rotina {
   indicadores?: Indicador[];
+  /** eventoId da agenda -> como a reunião terminou */
+  reunioes?: Record<string, ReuniaoMarcada>;
   /** "AAAA-MM-DD" -> números do dia */
   dias?: Record<string, DiaRotina>;
 }
@@ -217,6 +240,14 @@ type Acao =
   | { acao: "apagarAnexo"; anexoId: string }
   | { acao: "salvarRotinaDia"; data: string; valores: Record<string, number | "">; nota: string }
   | { acao: "salvarIndicadoresRotina"; indicadores: Indicador[] }
+  | {
+      acao: "marcarReuniao";
+      eventoId: string;
+      data: string;
+      status: StatusReuniao | null;
+      titulo: string;
+      inicio: string;
+    }
   | { acao: "apagarDupla"; duplaId: string };
 
 export async function chamar<T>(init?: RequestInit): Promise<T> {

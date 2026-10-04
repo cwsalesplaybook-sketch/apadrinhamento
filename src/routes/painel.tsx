@@ -18,6 +18,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { AppLayout, IconeCirculo, Vazio } from "@/components/AppLayout";
 import { METAS, calcularIndicadores, diasDesde, pct, type Dupla } from "@/lib/apadrinhamento";
+import { posicaoDa, useRadar, type DadosRadar } from "@/lib/radar";
+import { Agendamentos } from "@/components/Agendamentos";
+import { cn } from "@/lib/utils";
 
 const VERDE = "#2fc39a";
 
@@ -74,34 +77,13 @@ function CardMeta({
   );
 }
 
-const ETAPAS = [
-  "Treino",
-  "Prospecção",
-  "Reunião 1",
-  "Reunião 2",
-  "Reunião 3",
-  "Reunião 4",
-  "Venda originada",
-  "Venda conduzida",
-] as const;
-
-function etapaAtual(d: Dupla, dia: number) {
-  const alcancadas = [
-    dia >= 0,
-    dia > 5 || !!d.reuniao1,
-    !!d.reuniao1,
-    !!d.reuniao2,
-    !!d.reuniao3,
-    !!d.reuniao4,
-    !!d.venda_originada,
-    !!d.venda_conduzida,
-  ];
-  return alcancadas.lastIndexOf(true);
-}
-
-function LinhaDupla({ d }: { d: Dupla }) {
+/** Linha do tempo com as etapas do funil em que a dupla está (aba Duplas → funis). */
+function LinhaDupla({ d, dados, varios }: { d: Dupla; dados?: DadosRadar; varios: boolean }) {
   const dia = diasDesde(d.data_inicio);
-  const atual = etapaAtual(d, dia);
+  const pos = posicaoDa(dados, d.id);
+  const etapas = pos?.pipeline.etapas ?? [];
+  const atual = pos ? etapas.findIndex((e) => e.id === pos.etapa.id) : -1;
+  const desde = pos?.desde ? Math.floor((Date.now() - new Date(pos.desde).getTime()) / 864e5) : null;
   return (
     <div className="rounded-2xl border border-[#ece3f6] p-4">
       <div className="flex items-center gap-3">
@@ -109,39 +91,79 @@ function LinhaDupla({ d }: { d: Dupla }) {
           {d.afilhado.trim().charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-black text-ink">{d.afilhado}</div>
+          <Link to="/duplas/$id" params={{ id: d.id }} className="block truncate font-black text-ink hover:text-primary">
+            {d.afilhado}
+          </Link>
           <div className="truncate text-sm text-muted-foreground">
             Padrinho: {d.padrinho} · Ciclo {d.ciclo}
+            {varios && pos && ` · Funil ${pos.pipeline.nome}`}
+            {desde !== null && ` · ${desde === 0 ? "entrou hoje" : `${desde} ${desde === 1 ? "dia" : "dias"}`} nesta etapa`}
           </div>
         </div>
         <span className="rounded-full bg-[#f1e9fb] px-3 py-1 text-sm font-black text-primary">D{dia}</span>
       </div>
-      <div className="mt-4 overflow-x-auto pb-1">
-        <div className="relative min-w-[640px]">
-          <div className="absolute left-[6px] right-[6px] top-[5px] h-[3px] rounded-full bg-[#ece4f6]" />
-          <div
-            className="absolute left-[6px] top-[5px] h-[3px] rounded-full bg-primary"
-            style={{ width: atual > 0 ? `calc(${(atual / (ETAPAS.length - 1)) * 100}% - 12px)` : 0 }}
-          />
-          <div className="relative flex justify-between">
-            {ETAPAS.map((etapa, i) => (
-              <div key={etapa} className="flex w-0 flex-col items-center first:items-start last:items-end">
-                <span
-                  className={`h-[13px] w-[13px] rounded-full border-2 ${
-                    i <= atual ? "border-primary bg-primary" : "border-[#ddd0ee] bg-white"
-                  } ${i === atual ? "ring-4 ring-primary/20" : ""}`}
-                />
-                <span
-                  className={`mt-2 whitespace-nowrap text-xs ${i === atual ? "font-black text-ink" : "text-muted-foreground"}`}
-                >
-                  {etapa}
-                </span>
-              </div>
-            ))}
+      {etapas.length > 0 && (
+        <div className="mt-4 overflow-x-auto pb-1">
+          <div className="relative" style={{ minWidth: Math.max(320, etapas.length * 110) }}>
+            <div className="absolute left-[6px] right-[6px] top-[5px] h-[3px] rounded-full bg-[#ece4f6]" />
+            {etapas.length > 1 && (
+              <div
+                className="absolute left-[6px] top-[5px] h-[3px] rounded-full bg-primary"
+                style={{ width: atual > 0 ? `calc(${(atual / (etapas.length - 1)) * 100}% - 12px)` : 0 }}
+              />
+            )}
+            <div className="relative flex justify-between">
+              {etapas.map((etapa, i) => (
+                <div key={etapa.id} className="flex w-0 flex-col items-center first:items-start last:items-end">
+                  <span
+                    className={`h-[13px] w-[13px] rounded-full border-2 ${
+                      i <= atual ? "border-primary bg-primary" : "border-[#ddd0ee] bg-white"
+                    } ${i === atual ? "ring-4 ring-primary/20" : ""}`}
+                  />
+                  <span className={`mt-2 whitespace-nowrap text-xs ${i === atual ? "font-black text-ink" : "text-muted-foreground"}`}>
+                    {etapa.nome}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
+  );
+}
+
+/** Quantas duplas em cada etapa do funil escolhido (os mesmos funis da aba Duplas). */
+function FunilReal({ duplas, dados, pipelineId }: { duplas: Dupla[]; dados: DadosRadar; pipelineId: string }) {
+  const pipeline = dados.pipelines.find((p) => p.id === pipelineId) ?? dados.pipelines[0];
+  if (!pipeline) return null;
+  const nessa = duplas.filter((d) => posicaoDa(dados, d.id)?.pipeline.id === pipeline.id);
+  const linhas = pipeline.etapas.map((e) => ({ etapa: e, valor: nessa.filter((d) => posicaoDa(dados, d.id)?.etapa.id === e.id).length }));
+  const max = Math.max(1, ...linhas.map((l) => l.valor));
+  const cor = (i: number) => `hsl(${272 - (i / Math.max(1, linhas.length - 1)) * 110} 80% 60%)`;
+  return (
+    <>
+      <div className="mt-5 space-y-3.5">
+        {linhas.map((l, i) => (
+          <div key={l.etapa.id} className="grid grid-cols-[minmax(0,180px)_1fr_36px] items-center gap-4 text-[15px]">
+            <span className="flex min-w-0 items-center gap-2.5 text-ink">
+              <i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: cor(i) }} />
+              <span className="truncate" title={l.etapa.nome}>
+                {l.etapa.nome}
+              </span>
+            </span>
+            <div className="h-3 rounded-full bg-[#efe8f8]">
+              <div className="h-3 rounded-full" style={{ width: `${(l.valor / max) * 100}%`, background: cor(i) }} />
+            </div>
+            <span className="num text-right text-ink">{l.valor}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-5 flex items-center gap-2 text-[13px] text-muted-foreground">
+        <Info className="h-4 w-4 text-primary" />
+        {nessa.length} {nessa.length === 1 ? "dupla" : "duplas"} no funil "{pipeline.nome}" · arraste os cards na aba Duplas para mudar de etapa
+      </p>
+    </>
   );
 }
 
@@ -196,6 +218,11 @@ export function PainelPage() {
   const filtradas = ciclo === "todos" ? duplas : duplas.filter((d) => d.ciclo === ciclo);
   const ind = calcularIndicadores(filtradas);
   const maxFunil = Math.max(1, ...ind.funil.map((f) => f.valor));
+  const radar = useRadar();
+  const [pipelineId, setPipelineId] = useState("");
+  const [visaoFunil, setVisaoFunil] = useState<"etapas" | "metodo">("etapas");
+  const pipelines = radar.data?.pipelines ?? [];
+  const pipelineAtual = pipelines.find((p) => p.id === pipelineId) ?? pipelines[0];
 
   return (
     <AppLayout
@@ -294,16 +321,65 @@ export function PainelPage() {
             </div>
           </section>
 
+          <Agendamentos />
+
           <section className="grid gap-5 lg:grid-cols-[1fr_minmax(0,430px)]">
             <div className="cartao p-6">
               <div className="flex items-start gap-2.5">
                 <IconeCirculo icon={Filter} />
-                <div className="flex-1 pt-0.5">
+                <div className="min-w-0 flex-1 pt-0.5">
                   <h2 className="text-lg font-black text-ink">Funil das duplas</h2>
-                  <p className="text-sm text-muted-foreground">Acompanhe o andamento de cada etapa da dupla no programa.</p>
+                  <p className="text-sm text-muted-foreground">
+                    {visaoFunil === "etapas" ? "Quantas duplas há em cada etapa do funil." : "Leads, reuniões e vendas do método ABC."}
+                  </p>
                 </div>
                 <Seta />
               </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <div className="flex rounded-full bg-muted p-1">
+                  {(
+                    [
+                      ["etapas", "Etapas do funil"],
+                      ["metodo", "Método ABC"],
+                    ] as const
+                  ).map(([v, rotulo]) => (
+                    <button
+                      key={v}
+                      onClick={() => setVisaoFunil(v)}
+                      className={cn(
+                        "rounded-full px-3 py-1 text-xs font-bold transition-colors",
+                        visaoFunil === v ? "bg-primary text-white shadow" : "text-muted-foreground hover:text-ink",
+                      )}
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+                {visaoFunil === "etapas" && pipelines.length > 1 && (
+                  <select
+                    aria-label="Funil"
+                    value={pipelineAtual?.id ?? ""}
+                    onChange={(e) => setPipelineId(e.target.value)}
+                    className="seletor-3d h-8 cursor-pointer px-2 text-xs font-bold text-ink outline-none"
+                  >
+                    {pipelines.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nome}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              {visaoFunil === "etapas" ? (
+                radar.data && pipelineAtual ? (
+                  <FunilReal duplas={filtradas} dados={radar.data} pipelineId={pipelineAtual.id} />
+                ) : (
+                  <p className="mt-5 text-sm text-muted-foreground">
+                    {radar.isError ? `Não consegui carregar os funis: ${(radar.error as Error).message}` : "Carregando funis…"}
+                  </p>
+                )
+              ) : (
+              <>
               <div className="mt-5 space-y-3.5">
                 {ind.funil.map((f, i) => (
                   <div key={f.label} className="grid grid-cols-[150px_1fr_36px] items-center gap-4 text-[15px]">
@@ -328,6 +404,8 @@ export function PainelPage() {
                 <Info className="h-4 w-4 text-primary" />
                 Leads novos (pipeline próprio, além dos 6 iniciais): <b className="text-ink">{ind.leadsNovos}</b>
               </p>
+              </>
+              )}
             </div>
 
             <div className="cartao p-6">
@@ -371,7 +449,7 @@ export function PainelPage() {
             </div>
             <div className="mt-5 space-y-3">
               {filtradas.map((d) => (
-                <LinhaDupla key={d.id} d={d} />
+                <LinhaDupla key={d.id} d={d} dados={radar.data} varios={pipelines.length > 1} />
               ))}
             </div>
           </section>

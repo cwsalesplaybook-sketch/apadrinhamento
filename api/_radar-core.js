@@ -4,6 +4,7 @@
 
 import { randomUUID } from "node:crypto";
 import { ciclos, sincronizarDuplas } from "./_ciclos.js";
+import { conectarAgenda, desconectarAgenda, eventosDaAgenda } from "./_agenda.js";
 
 const ARQUIVO = "radar/dados.json";
 
@@ -328,6 +329,43 @@ const ACOES = {
     if (Object.keys(limpos).length === 0 && !texto) delete minha.dias[data];
     else minha.dias[data] = { valores: limpos, ...(texto ? { nota: texto } : {}), em: new Date().toISOString() };
   },
+  // Reunião da agenda marcada no Painel. Atualiza sozinha a rotina daquele dia
+  // (realizada -> "Reuniões realizadas", no-show -> "No-show"), desfazendo a marcação anterior.
+  marcarReuniao(d, { eventoId, data, status, titulo, inicio }, quem) {
+    const id = String(eventoId ?? "").slice(0, 300);
+    if (!id) throw new ErroUso("Reunião inválida");
+    if (status !== null && !["realizada", "noshow", "remarcada", "cancelada"].includes(status)) throw new ErroUso("Situação inválida");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data ?? ""))) throw new ErroUso("Data inválida");
+    d.rotina ??= {};
+    const minha = (d.rotina[String(quem.email).toLowerCase()] ??= { dias: {} });
+    minha.dias ??= {};
+    minha.reunioes ??= {};
+    const CONTA = { realizada: "reunioes", noshow: "noshow" };
+    const ajustar = (dia, chave, delta) => {
+      if (!chave) return;
+      const reg = (minha.dias[dia] ??= { valores: {}, em: new Date().toISOString() });
+      const v = (reg.valores[chave] ?? 0) + delta;
+      if (v > 0) reg.valores[chave] = v;
+      else delete reg.valores[chave];
+      reg.em = new Date().toISOString();
+      if (Object.keys(reg.valores).length === 0 && !reg.nota) delete minha.dias[dia];
+    };
+    const antes = minha.reunioes[id];
+    if (antes?.status === status) return;
+    if (antes) ajustar(antes.data, CONTA[antes.status], -1);
+    if (status === null) {
+      delete minha.reunioes[id];
+      return;
+    }
+    ajustar(data, CONTA[status], +1);
+    minha.reunioes[id] = {
+      status,
+      data,
+      titulo: String(titulo ?? "").slice(0, 200),
+      inicio: String(inicio ?? "").slice(0, 40),
+      em: new Date().toISOString(),
+    };
+  },
   salvarIndicadoresRotina(d, { indicadores }, quem) {
     if (!Array.isArray(indicadores) || indicadores.length === 0) throw new ErroUso("Mantenha pelo menos um indicador");
     if (indicadores.length > 12) throw new ErroUso("No máximo 12 indicadores");
@@ -496,6 +534,17 @@ export async function tratar(request) {
       if (corpo?.acao === "ciclos") {
         const { dados } = await (await armazenamento()).ler();
         return json(await ciclos({ duplas: corpo.duplas, dados, quem }));
+      }
+      // Agenda (iCal) de quem está logado: o link nunca volta para o navegador.
+      const eu = String(quem.email).toLowerCase();
+      if (corpo?.acao === "agenda") return json(await eventosDaAgenda(eu, corpo.inicio, corpo.fim));
+      if (corpo?.acao === "conectarAgenda") {
+        await conectarAgenda(eu, corpo.url);
+        return json({ ok: true });
+      }
+      if (corpo?.acao === "desconectarAgenda") {
+        await desconectarAgenda(eu);
+        return json({ ok: true });
       }
       // O app manda a lista de duplas que acabou de ler, para o fechamento da semana usar dados atuais.
       if (corpo?.acao === "sincronizarDuplas") {
