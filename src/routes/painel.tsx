@@ -257,7 +257,8 @@ export function PainelPage() {
         </Vazio>
       ) : (
         <div className="space-y-5">
-          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
+            <div className="grid content-start gap-5 md:grid-cols-2">
             <CardMeta
               icon={Users}
               titulo="Execução"
@@ -319,9 +320,9 @@ export function PainelPage() {
                 </div>
               </div>
             </div>
+            </div>
+            <Agendamentos />
           </section>
-
-          <Agendamentos />
 
           <section className="grid gap-5 lg:grid-cols-[1fr_minmax(0,430px)]">
             <div className="cartao p-6">
