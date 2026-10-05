@@ -240,7 +240,7 @@ export function Agendamentos({ className = "" }: { className?: string }) {
               {aberto === "pendentes" ? "Reuniões para marcar" : aberto === hoje ? `Hoje · ${diaLongo(hoje)}` : aberto ? diaLongo(aberto) : ""}
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
-              {lista.length} {lista.length === 1 ? "reunião" : "reuniões"} · depois que a reunião começa, marque como foi
+              {lista.length} {lista.length === 1 ? "reunião" : "reuniões"} · marque como foi cada uma
             </p>
           </DialogHeader>
           <ul className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
@@ -262,10 +262,9 @@ export function Agendamentos({ className = "" }: { className?: string }) {
                     <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink" title={`${e.titulo}${e.convidados.length ? ` — com ${e.convidados.join(", ")}` : ""}`}>
                       {e.titulo}
                     </span>
-                    {!aconteceu && <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Agendada</span>}
+                    {!aconteceu && !marca && <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">Agendada</span>}
                   </div>
-                  {aconteceu && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
+                  <div className="mt-1.5 flex flex-wrap gap-1">
                       {SITUACOES.map(({ valor, rotulo, icon: I, cor }) => (
                         <button
                           key={valor}
@@ -279,8 +278,7 @@ export function Agendamentos({ className = "" }: { className?: string }) {
                           <I className="h-3 w-3" /> {rotulo}
                         </button>
                       ))}
-                    </div>
-                  )}
+                  </div>
                 </li>
               );
             })}
