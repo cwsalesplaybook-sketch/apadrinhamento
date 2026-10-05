@@ -4,6 +4,7 @@ import { AlertCircle, CalendarClock, Check, ChevronLeft, ChevronRight, Link2, Ro
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IconeCirculo } from "@/components/AppLayout";
 import { cn } from "@/lib/utils";
 import {
@@ -55,8 +56,8 @@ export function Agendamentos({ className = "" }: { className?: string }) {
   const acao = useAcaoRadar();
   const hoje = hojeISO();
   const [mes, setMes] = useState(() => hoje.slice(0, 7)); // "AAAA-MM"
-  const [dia, setDia] = useState(hoje);
-  const [verPendentes, setVerPendentes] = useState(false);
+  // Dia aberto na janela ("AAAA-MM-DD"), "pendentes" (as que faltam marcar) ou nada.
+  const [aberto, setAberto] = useState<string | null>(null);
   const [soComConvidados, setSoComConvidados] = useState(true);
 
   const mesAtual = hoje.slice(0, 7);
@@ -81,11 +82,19 @@ export function Agendamentos({ className = "" }: { className?: string }) {
   const pendentes = [...filtrar(passadas.data?.eventos), ...eventos]
     .filter((e) => new Date(e.inicio).getTime() <= agora && !marcadas[e.id])
     .filter((e, i, l) => l.findIndex((x) => x.id === e.id) === i);
+  // Calendário: daqui para a frente + as que já aconteceram desde a conexão (para marcar).
+  const passadasFiltradas = filtrar(passadas.data?.eventos);
   const porDia = useMemo(() => {
     const mapa: Record<string, EventoAgenda[]> = {};
-    for (const e of eventos) (mapa[e.data] ??= []).push(e);
+    const vistos = new Set<string>();
+    for (const e of [...passadasFiltradas, ...eventos]) {
+      if (vistos.has(e.id)) continue;
+      vistos.add(e.id);
+      (mapa[e.data] ??= []).push(e);
+    }
+    for (const l of Object.values(mapa)) l.sort((a, b) => a.inicio.localeCompare(b.inicio));
     return mapa;
-  }, [eventos]);
+  }, [passadasFiltradas, eventos]);
 
   // No-show do que já foi marcado neste mês (contando desde a conexão).
   const doMes = Object.values(marcadas).filter((r) => r.data.startsWith(mesAtual));
@@ -108,8 +117,6 @@ export function Agendamentos({ className = "" }: { className?: string }) {
     const novo = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (novo < mesAtual) return;
     setMes(novo);
-    setDia(novo === mesAtual ? hoje : `${novo}-01`);
-    setVerPendentes(false);
   };
 
   function marcar(e: EventoAgenda, status: StatusReuniao) {
@@ -117,7 +124,7 @@ export function Agendamentos({ className = "" }: { className?: string }) {
     acao.mutate({ acao: "marcarReuniao", eventoId: e.id, data: e.data, status: atual === status ? null : status, titulo: e.titulo, inicio: e.inicio });
   }
 
-  const lista = verPendentes ? pendentes : porDia[dia] ?? [];
+  const lista = aberto === "pendentes" ? pendentes : aberto ? porDia[aberto] ?? [] : [];
 
   return (
     <section className={cn("cartao flex flex-col p-5", className)}>
@@ -125,8 +132,9 @@ export function Agendamentos({ className = "" }: { className?: string }) {
         <IconeCirculo icon={CalendarClock} />
         <div className="min-w-0 flex-1 pt-0.5">
           <h2 className="text-[17px] font-black text-ink">Agenda</h2>
-          <p className="text-[13px] text-muted-foreground">Próximas reuniões · marque como foi para contar o no-show</p>
+          <p className="text-[13px] text-muted-foreground">Clique num dia para ver as reuniões e marcar o no-show</p>
         </div>
+        {agenda.data?.conectada && <DesconectarAgenda />}
       </div>
 
       {agenda.isLoading ? (
@@ -178,35 +186,33 @@ export function Agendamentos({ className = "" }: { className?: string }) {
               ))}
               {grade.map((d, i) => {
                 if (!d) return <span key={i} />;
-                const passado = d < hoje;
-                const qtd = porDia[d]?.length ?? 0;
-                const ativo = !verPendentes && d === dia;
+                const doDia = porDia[d] ?? [];
+                // Dias passados só abrem se tiverem reuniões desde a conexão (para marcar no-show).
+                const clicavel = doDia.length > 0 && (d >= hoje || d >= inicioPendentes);
+                const faltaMarcar = doDia.some((e) => new Date(e.inicio).getTime() <= agora && !marcadas[e.id]);
+                const ativo = aberto === d;
                 return (
                   <button
                     key={d}
-                    disabled={passado}
-                    onClick={() => {
-                      setDia(d);
-                      setVerPendentes(false);
-                    }}
+                    disabled={!clicavel}
+                    onClick={() => setAberto(d)}
+                    title={doDia.length ? `${doDia.length} ${doDia.length === 1 ? "reunião" : "reuniões"}` : undefined}
                     className={cn(
                       "relative flex h-9 flex-col items-center justify-center rounded-lg text-sm transition-colors",
-                      passado && "cursor-default text-muted-foreground/40",
-                      !passado && !ativo && "text-ink hover:bg-accent",
-                      ativo && "bg-primary font-black text-white shadow",
-                      d === hoje && !ativo && "font-black text-primary ring-1 ring-primary/40",
+                      d < hoje ? "text-muted-foreground/40" : "text-ink",
+                      clicavel ? "hover:bg-accent" : "cursor-default",
+                      ativo && "bg-accent",
+                      d === hoje && "font-black text-primary ring-1 ring-primary/40",
                     )}
                   >
                     {Number(d.slice(8))}
-                    {qtd > 0 && !passado && (
+                    {doDia.length > 0 && (
                       <span
                         className={cn(
-                          "absolute -right-0.5 -top-0.5 min-w-4 rounded-full px-1 text-[10px] font-black leading-4",
-                          ativo ? "bg-white text-primary" : "bg-primary text-white",
+                          "absolute bottom-1 h-1.5 w-1.5 rounded-full",
+                          faltaMarcar ? "bg-warning" : d < hoje ? "bg-primary/40" : "bg-primary",
                         )}
-                      >
-                        {qtd}
-                      </span>
+                      />
                     )}
                   </button>
                 );
@@ -216,27 +222,28 @@ export function Agendamentos({ className = "" }: { className?: string }) {
 
           {pendentes.length > 0 && (
             <button
-              onClick={() => setVerPendentes((v) => !v)}
-              className={cn(
-                "mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold",
-                verPendentes ? "bg-warning text-ink" : "bg-warning/15 text-ink hover:bg-warning/25",
-              )}
+              onClick={() => setAberto("pendentes")}
+              className="mt-3 flex items-center gap-2 rounded-xl bg-warning/15 px-3 py-2 text-left text-sm font-bold text-ink hover:bg-warning/25"
             >
               <AlertCircle className="h-4 w-4 shrink-0" />
               {pendentes.length} {pendentes.length === 1 ? "reunião já aconteceu e falta marcar" : "reuniões já aconteceram e faltam marcar"}
             </button>
           )}
+        </>
+      )}
 
-          {/* Reuniões do dia escolhido (ou as que faltam marcar) */}
-          <div className="mt-3 flex items-baseline justify-between gap-2">
-            <span className="rotulo text-[11px] text-primary">
-              {verPendentes ? "Para marcar" : dia === hoje ? `Hoje · ${diaLongo(dia)}` : diaLongo(dia)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {lista.length} {lista.length === 1 ? "reunião" : "reuniões"}
-            </span>
-          </div>
-          <ul className="mt-2 max-h-72 space-y-1.5 overflow-y-auto pr-1">
+      {/* Reuniões do dia clicado (ou as que faltam marcar), numa janela */}
+      <Dialog open={!!aberto} onOpenChange={(v) => !v && setAberto(null)}>
+        <DialogContent className="max-w-lg rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-black text-ink first-letter:uppercase">
+              {aberto === "pendentes" ? "Reuniões para marcar" : aberto === hoje ? `Hoje · ${diaLongo(hoje)}` : aberto ? diaLongo(aberto) : ""}
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              {lista.length} {lista.length === 1 ? "reunião" : "reuniões"} · depois que a reunião começa, marque como foi
+            </p>
+          </DialogHeader>
+          <ul className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
             {lista.length === 0 && (
               <li className="rounded-xl border-2 border-dashed border-[#e3d5ef] px-3 py-5 text-center text-xs text-muted-foreground">
                 Nenhuma reunião nesse dia.
@@ -249,7 +256,7 @@ export function Agendamentos({ className = "" }: { className?: string }) {
                 <li key={e.id} className={cn("rounded-xl border px-3 py-2", aconteceu && !marca ? "border-warning/60 bg-warning/5" : "border-[#ece3f6] bg-white")}>
                   <div className="flex items-center gap-2">
                     <span className="num shrink-0 text-xs text-ink">
-                      {verPendentes && `${e.data.slice(8)}/${e.data.slice(5, 7)} · `}
+                      {aberto === "pendentes" &&`${e.data.slice(8)}/${e.data.slice(5, 7)} · `}
                       {hora(e.inicio)}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink" title={`${e.titulo}${e.convidados.length ? ` — com ${e.convidados.join(", ")}` : ""}`}>
@@ -278,16 +285,12 @@ export function Agendamentos({ className = "" }: { className?: string }) {
               );
             })}
           </ul>
-
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3 text-xs">
-            <label className="flex cursor-pointer items-center gap-1.5 text-muted-foreground">
-              <input type="checkbox" className="accent-primary" checked={soComConvidados} onChange={(e) => setSoComConvidados(e.target.checked)} />
-              Só com convidados
-            </label>
-            <DesconectarAgenda />
-          </div>
-        </>
-      )}
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+            <input type="checkbox" className="accent-primary" checked={soComConvidados} onChange={(e) => setSoComConvidados(e.target.checked)} />
+            Só com convidados
+          </label>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -352,9 +355,11 @@ function DesconectarAgenda() {
   return (
     <button
       onClick={() => confirm("Desconectar sua agenda do Radar? As marcações já feitas continuam salvas.") && desconectar.mutate()}
-      className="flex items-center gap-1 font-bold text-muted-foreground hover:text-destructive"
+      title="Desconectar agenda"
+      aria-label="Desconectar agenda"
+      className="shrink-0 rounded-full p-1.5 text-muted-foreground/60 transition-colors hover:bg-accent hover:text-destructive"
     >
-      <Unplug className="h-3.5 w-3.5" /> Desconectar
+      <Unplug className="h-3.5 w-3.5" />
     </button>
   );
 }
