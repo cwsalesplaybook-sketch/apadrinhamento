@@ -226,12 +226,13 @@ export function PainelPage() {
 
   // Formados / encerrados pela etapa do funil em que a dupla está (aba Duplas).
   const nomeEtapa = (d: Dupla) => posicaoDa(radar.data, d.id)?.etapa.nome.toLowerCase() ?? "";
-  const formada = (d: Dupla) => /format|formad/.test(nomeEtapa(d));
-  const encerrada = (d: Dupla) => /encerr|perdid|conclu|desist|sem ativa/.test(nomeEtapa(d));
+  // (o status da dupla também vale, para quem foi encerrado pelo botão da página da dupla)
+  const formada = (d: Dupla) => d.status === "formado" || /format|formad/.test(nomeEtapa(d));
+  const encerrada = (d: Dupla) => d.status === "encerrado" || /encerr|perdid|conclu|desist|sem ativa/.test(nomeEtapa(d));
   const formados = filtradas.filter(formada).length;
   const encerrados = filtradas.filter(encerrada).length;
   // Aderência = reuniões ABC feitas dentro das janelas do Playbook (duplas que seguem no ciclo).
-  const cadencia = cadenciaABC(filtradas.filter((d) => d.status !== "encerrado" && !encerrada(d)));
+  const cadencia = cadenciaABC(filtradas.filter((d) => !encerrada(d)));
 
   return (
     <AppLayout
