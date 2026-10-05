@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { AppLayout, IconeCirculo, Vazio } from "@/components/AppLayout";
-import { METAS, calcularIndicadores, diasDesde, pct, type Dupla } from "@/lib/apadrinhamento";
+import { METAS, PRAZOS_ABC, cadenciaABC, calcularIndicadores, diasDesde, pct, type Dupla } from "@/lib/apadrinhamento";
 import { posicaoDa, useRadar, type DadosRadar } from "@/lib/radar";
 import { Agendamentos } from "@/components/Agendamentos";
 import { cn } from "@/lib/utils";
@@ -224,6 +224,15 @@ export function PainelPage() {
   const pipelines = radar.data?.pipelines ?? [];
   const pipelineAtual = pipelines.find((p) => p.id === pipelineId) ?? pipelines[0];
 
+  // Formados / encerrados pela etapa do funil em que a dupla está (aba Duplas).
+  const nomeEtapa = (d: Dupla) => posicaoDa(radar.data, d.id)?.etapa.nome.toLowerCase() ?? "";
+  const formada = (d: Dupla) => /format|formad/.test(nomeEtapa(d));
+  const encerrada = (d: Dupla) => /encerr|perdid|conclu|desist|sem ativa/.test(nomeEtapa(d));
+  const formados = filtradas.filter(formada).length;
+  const encerrados = filtradas.filter(encerrada).length;
+  // Aderência = reuniões ABC feitas dentro das janelas do Playbook (duplas que seguem no ciclo).
+  const cadencia = cadenciaABC(filtradas.filter((d) => d.status !== "encerrado" && !encerrada(d)));
+
   return (
     <AppLayout
       title="Painel do ciclo"
@@ -294,7 +303,7 @@ export function PainelPage() {
                 </span>
                 <div className="min-w-0 flex-1 pt-1">
                   <div className="whitespace-nowrap text-[15px] font-black">Aderência à cadência</div>
-                  <div className="text-sm text-white/75">(check-ins)</div>
+                  <div className="text-sm text-white/75">(reuniões ABC no prazo)</div>
                 </div>
                 <Link to="/duplas" className="botao-chevron !bg-white/15 !text-white" aria-label="Ver duplas">
                   <ChevronRight className="h-4 w-4" />
@@ -304,18 +313,25 @@ export function PainelPage() {
                 <div className="h-1.5 flex-1 rounded-full bg-white/15">
                   <div
                     className="h-1.5 rounded-full bg-warning"
-                    style={{ width: `${Math.round((ind.aderencia ?? 0) * 100)}%` }}
+                    style={{ width: `${Math.round((cadencia.taxa ?? 0) * 100)}%` }}
                   />
                 </div>
-                <span className="num text-sm text-warning">{pct(ind.aderencia)}</span>
+                <span className="num text-sm text-warning">{pct(cadencia.taxa)}</span>
+              </div>
+              <div className="mt-2 text-[13px] text-white/75">
+                {cadencia.devidas
+                  ? `${cadencia.feitas} de ${cadencia.devidas} reuniões feitas no prazo · meta 80%`
+                  : cadencia.proximoPrazo !== Infinity
+                    ? `Começa a contar no D${cadencia.proximoPrazo} (prazo da ${PRAZOS_ABC.indexOf(cadencia.proximoPrazo) + 1}ª reunião)`
+                    : "Nenhuma reunião com prazo no ciclo"}
               </div>
               <div className="mt-auto grid grid-cols-2 pt-5">
                 <div className="pr-4">
-                  <div className="num text-[32px] leading-none">{ind.formados}</div>
+                  <div className="num text-[32px] leading-none">{formados}</div>
                   <div className="mt-1 text-[15px] text-white/85">formados</div>
                 </div>
                 <div className="border-l border-white/20 pl-6">
-                  <div className="num text-[32px] leading-none">{ind.encerrados}</div>
+                  <div className="num text-[32px] leading-none">{encerrados}</div>
                   <div className="mt-1 text-[15px] text-white/85">encerrados</div>
                 </div>
               </div>

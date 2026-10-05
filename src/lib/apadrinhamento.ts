@@ -66,6 +66,30 @@ export function aderencia(d: Dupla) {
   return total ? d.checkins_realizados / total : null;
 }
 
+/* Cadência das reuniões ABC (Playbook): cada reunião tem uma janela e conta como
+   devida a partir do fim dela — 1ª até D10, 2ª até D14, 3ª até D18, 4ª até D22. */
+export const PRAZOS_ABC = [10, 14, 18, 22];
+
+export function reunioesDevidas(d: Dupla, hoje = new Date()) {
+  const dia = diasDesde(d.data_inicio, hoje);
+  return PRAZOS_ABC.filter((p) => dia >= p).length;
+}
+
+/** Soma de todas as duplas: reuniões feitas (até o que já era devido) ÷ reuniões devidas. */
+export function cadenciaABC(duplas: Dupla[]) {
+  let devidas = 0;
+  let feitas = 0;
+  for (const d of duplas) {
+    const dev = reunioesDevidas(d);
+    devidas += dev;
+    feitas += Math.min(reunioesFeitas(d), dev);
+  }
+  const proximoPrazo = duplas.length
+    ? Math.min(...duplas.map((d) => PRAZOS_ABC.find((p) => p > diasDesde(d.data_inicio)) ?? Infinity))
+    : Infinity;
+  return { devidas, feitas, taxa: devidas ? feitas / devidas : null, proximoPrazo };
+}
+
 export function calcularIndicadores(duplas: Dupla[]) {
   const execucao = duplas.filter((d) => reunioesFeitas(d) === 4).length;
   const ativacao = duplas.filter((d) => ateDia(d.data_inicio, d.venda_originada, 30)).length;
