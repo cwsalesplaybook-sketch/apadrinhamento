@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, LogOut, Megaphone, Rocket, User, UserPlus, Users, type LucideProps } from "lucide-react";
+import { ChevronDown, ChevronRight, GraduationCap, LogOut, Megaphone, Rocket, User, Users, type LucideProps } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Icone = ComponentType<LucideProps>;
 
 export const NAV = [
-  { to: "/contratacao", label: "Contratação de pessoas", icon: UserPlus },
+  { to: "/capacitacoes", label: "Capacitações e materiais", icon: GraduationCap },
   { to: "/time", label: "Sobre o time", icon: Users },
   { to: "/vaga", label: "Forms da vaga", icon: Megaphone },
   { to: "/onboarding", label: "Onboarding", icon: Rocket },

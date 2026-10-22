@@ -7,7 +7,7 @@ import { Estrela } from "@/components/AppLayout";
 
 /** Itens do painel da marca (mesmas abas do menu, com os ícones do mockup). */
 const ITENS = [
-  { label: "Contratação de pessoas", icon: Star },
+  { label: "Capacitações e materiais", icon: Star },
   { label: "Sobre o time", icon: Users },
   { label: "Forms da vaga", icon: ChartNoAxesCombined },
   { label: "Onboarding", icon: Rocket },
@@ -55,12 +55,12 @@ export function AuthPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
       setCarregando(false);
       if (error) return toast.error("E-mail ou senha incorretos");
-      navigate({ to: "/contratacao" });
+      navigate({ to: "/capacitacoes" });
     } else {
       const { error } = await supabase.auth.signUp({
         email,
         password: senha,
-        options: { emailRedirectTo: window.location.origin + "/contratacao" },
+        options: { emailRedirectTo: window.location.origin + "/capacitacoes" },
       });
       setCarregando(false);
       if (error) return toast.error(error.message);
@@ -110,7 +110,7 @@ export function AuthPage() {
         {/* Cardapinho com o balão */}
         <figure className="relative z-10 mx-auto mt-8 flex max-w-[360px] items-start lg:absolute lg:bottom-[3%] lg:right-[4%] lg:mt-0 lg:block lg:w-[clamp(260px,19.5vw,380px)] lg:max-w-none">
           <blockquote className="stars-balao relative z-10 w-[190px] shrink-0 px-6 py-5 text-[15px] font-bold leading-snug text-[#3b0f7a] lg:absolute lg:-left-[24%] lg:-top-[9%] lg:w-[clamp(190px,11.6vw,230px)] lg:px-7 lg:text-[clamp(13px,0.9vw,16px)]">
-            Sou um representante estrela. Meu lugar é aqui! <span className="text-[#ffb600]">✨</span>
+            Seu próximo nível começa aqui.
           </blockquote>
           <img
             src="/brand/cardapinho-stars.webp"

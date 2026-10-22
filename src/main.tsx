@@ -13,7 +13,7 @@ import {
 import { Toaster } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/routes/auth";
-import { ContratacaoPage } from "@/routes/contratacao";
+import { CapacitacoesPage } from "@/routes/capacitacoes";
 import { TimePage } from "@/routes/time";
 import { VagaPage } from "@/routes/vaga";
 import { OnboardingPage } from "@/routes/onboarding";
@@ -56,7 +56,7 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   beforeLoad: () => {
-    throw redirect({ to: "/contratacao" });
+    throw redirect({ to: "/capacitacoes" });
   },
 });
 
@@ -73,10 +73,10 @@ const authenticatedRoute = createRoute({
   component: Outlet,
 });
 
-const contratacaoRoute = createRoute({
+const capacitacoesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
-  path: "/contratacao",
-  component: ContratacaoPage,
+  path: "/capacitacoes",
+  component: CapacitacoesPage,
 });
 const timeRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/time", component: TimePage });
 const vagaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/vaga", component: VagaPage });
@@ -89,7 +89,7 @@ const onboardingRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([contratacaoRoute, timeRoute, vagaRoute, onboardingRoute]),
+  authenticatedRoute.addChildren([capacitacoesRoute, timeRoute, vagaRoute, onboardingRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });

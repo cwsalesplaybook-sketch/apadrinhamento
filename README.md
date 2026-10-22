@@ -2,7 +2,7 @@
 
 O portal dos representantes estrela da Cardápio Web (antigo Radar dos Reps).
 
-Abas: Contratação de pessoas, Sobre o time, Forms da vaga e Onboarding. Login por e-mail e senha
+Abas: Capacitações e materiais, Sobre o time, Forms da vaga e Onboarding. Login por e-mail e senha
 (Supabase Auth).
 
 Identidade visual segue o manual oficial da Cardápio Web (2023): paleta Purple Heart, Eminence,
