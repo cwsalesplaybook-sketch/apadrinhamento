@@ -1,42 +1,30 @@
-import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Bell,
-  BookOpenCheck,
-  CalendarPlus,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  History,
-  LayoutGrid,
-  LogOut,
-  MessagesSquare,
-  Paperclip,
-  User,
-  Users,
-  type LucideProps,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, LogOut, Megaphone, Rocket, User, UserPlus, Users, type LucideProps } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { diasDesde, type Dupla } from "@/lib/apadrinhamento";
-import { chamar } from "@/lib/radar";
 
 type Icone = ComponentType<LucideProps>;
 
-const NAV = [
-  { to: "/painel", label: "Painel", icon: LayoutGrid },
-  { to: "/duplas", label: "Duplas", icon: Users },
-  { to: "/weeklies", label: "Weeklies", icon: CalendarPlus },
-  { to: "/historico", label: "Histórico", icon: History },
-  { to: "/templates", label: "Templates", icon: FileText },
-  { to: "/playbook", label: "Playbook de ativação", icon: BookOpenCheck },
-  { to: "/daily", label: "Daily", icon: MessagesSquare },
-  { to: "/anexo", label: "Anexo", icon: Paperclip },
+export const NAV = [
+  { to: "/contratacao", label: "Contratação de pessoas", icon: UserPlus },
+  { to: "/time", label: "Sobre o time", icon: Users },
+  { to: "/vaga", label: "Forms da vaga", icon: Megaphone },
+  { to: "/onboarding", label: "Onboarding", icon: Rocket },
 ] as const;
 
 async function sair(navigate: () => void) {
   await supabase.auth.signOut();
   navigate();
+}
+
+/** Estrela de 5 pontas usada como marca do CW Stars. */
+export function Estrela({ className = "", style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} style={style} aria-hidden>
+      <path fill="currentColor" d="M12 2.2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+    </svg>
+  );
 }
 
 function MenuLateral() {
@@ -47,8 +35,10 @@ function MenuLateral() {
         <div className="relative z-10 px-5 pt-6">
           <img src="/brand/logo-cw-eminence.webp" alt="Cardápio Web" className="h-14 drop-shadow-lg" />
           <div className="menu-3d-marca mt-5 rounded-2xl px-4 py-3.5">
-            <div className="titulo-h1 text-xl leading-none">RADAR DOS REPS</div>
-            <p className="mt-1.5 text-xs leading-snug text-white/75">Visão completa da jornada dos representantes.</p>
+            <div className="titulo-h1 flex items-center gap-2 text-xl leading-none">
+              CW STARS <Estrela className="h-5 w-5 text-[#ffb600]" />
+            </div>
+            <p className="mt-1.5 text-xs leading-snug text-white/75">O portal dos representantes estrela.</p>
           </div>
         </div>
         <nav className="relative z-10 mt-5 flex gap-1 overflow-x-auto px-3 pb-3 md:min-h-0 md:flex-col md:gap-0.5 md:overflow-x-hidden md:overflow-y-auto md:pb-0 [scrollbar-width:none]">
@@ -56,7 +46,7 @@ function MenuLateral() {
             <Link
               key={item.to}
               to={item.to}
-              className="menu-3d-item group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-2 text-[15px] font-bold text-white/85"
+              className="menu-3d-item group flex items-center gap-4 whitespace-nowrap rounded-2xl px-4 py-2.5 text-[15px] font-bold text-white/85"
               activeProps={{ className: "menu-3d-ativo text-white" }}
             >
               {({ isActive }) => (
@@ -75,10 +65,10 @@ function MenuLateral() {
         </nav>
         <div className="relative z-10 mt-auto hidden md:block">
           <img
-            src="/brand/cardapinho-mesa.webp"
+            src="/brand/cardapinho-stars.webp"
             alt=""
             aria-hidden
-            className="pointer-events-none mx-auto hidden w-48 select-none [@media(min-height:1000px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
+            className="pointer-events-none mx-auto hidden w-36 select-none [@media(min-height:820px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
           />
           <button
             onClick={() => sair(() => router.navigate({ to: "/auth" }))}
@@ -101,73 +91,6 @@ function useFora(aberto: boolean, fechar: () => void) {
     return () => document.removeEventListener("mousedown", onClick);
   }, [aberto, fechar]);
   return ref;
-}
-
-// Última lista de duplas enviada ao servidor nesta aba (evita reenviar a mesma).
-let duplasEnviadas = "";
-
-/** Mantém no servidor a lista de duplas mais recente: o fechamento semanal do Histórico usa essa foto. */
-function useSincronizarDuplas(duplas: Dupla[] | undefined) {
-  useEffect(() => {
-    if (!duplas) return;
-    const ordenadas = [...duplas].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-    const assinatura = JSON.stringify(ordenadas);
-    if (assinatura === duplasEnviadas) return;
-    duplasEnviadas = assinatura;
-    chamar({ method: "POST", body: JSON.stringify({ acao: "sincronizarDuplas", duplas: ordenadas }) }).catch(() => {
-      duplasEnviadas = "";
-    });
-  }, [duplas]);
-}
-
-function Notificacoes() {
-  const [aberto, setAberto] = useState(false);
-  const ref = useFora(aberto, () => setAberto(false));
-  const { data: duplas = [], isSuccess } = useQuery({
-    queryKey: ["duplas"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("duplas").select("*").order("data_inicio");
-      if (error) throw error;
-      return data as Dupla[];
-    },
-  });
-  useSincronizarDuplas(isSuccess ? duplas : undefined);
-  const alertas = duplas
-    .filter((d) => d.status !== "encerrado")
-    .flatMap((d) => {
-      const dia = diasDesde(d.data_inicio);
-      if (dia === 15 || dia === 30) return [{ id: d.id, texto: `${d.afilhado} está no checkpoint D${dia}` }];
-      if (dia > 30 && !d.venda_originada) return [{ id: d.id, texto: `${d.afilhado} passou do D30 sem venda originada` }];
-      return [];
-    });
-  return (
-    <div ref={ref} className="relative">
-      <button
-        aria-label="Notificações"
-        onClick={() => setAberto(!aberto)}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-white"
-      >
-        <Bell className="h-6 w-6" strokeWidth={1.9} />
-        {alertas.length > 0 && <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />}
-      </button>
-      {aberto && (
-        <div className="cartao absolute right-0 z-40 mt-2 w-80 p-4">
-          <div className="text-sm font-black text-ink">Notificações</div>
-          {alertas.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">Nenhum alerta no momento.</p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {alertas.map((a) => (
-                <li key={a.id} className="rounded-xl bg-accent px-3 py-2 text-sm">
-                  {a.texto}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function MenuUsuario() {
@@ -201,9 +124,9 @@ function MenuUsuario() {
   );
 }
 
-export function IconeCirculo({ icon: I, cor = "roxo", className = "" }: { icon: Icone; cor?: "roxo" | "verde"; className?: string }) {
+export function IconeCirculo({ icon: I, className = "" }: { icon: Icone; className?: string }) {
   return (
-    <span className={`icone-circulo icone-circulo-${cor} flex shrink-0 items-center justify-center rounded-full ${className}`}>
+    <span className={`icone-circulo icone-circulo-roxo flex shrink-0 items-center justify-center rounded-full ${className}`}>
       <I className="h-6 w-6" strokeWidth={2} />
     </span>
   );
@@ -213,15 +136,11 @@ export function AppLayout({
   title,
   subtitle,
   icon: I,
-  filtros,
-  actions,
   children,
 }: {
   title: string;
   subtitle?: string;
   icon: Icone;
-  filtros?: ReactNode;
-  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -238,24 +157,68 @@ export function AppLayout({
               {subtitle && <p className="mt-1.5 text-[17px] text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {filtros}
-            {actions}
-            <Notificacoes />
-            <MenuUsuario />
-          </div>
+          <MenuUsuario />
         </header>
-        {children}
+        <div className="max-w-5xl space-y-6">{children}</div>
       </main>
     </div>
   );
 }
 
-export function Vazio({ imagem, children }: { imagem: string; children: ReactNode }) {
+/** Bloco de conteúdo com título e ícone, base de todas as abas. */
+export function Secao({
+  icon,
+  titulo,
+  descricao,
+  children,
+}: {
+  icon: Icone;
+  titulo: string;
+  descricao?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="cartao flex flex-col items-center p-10 text-center">
-      <img src={imagem} alt="" aria-hidden className="mb-4 h-36 select-none" />
+    <section className="cartao p-6 sm:p-7">
+      <div className="mb-5 flex items-start gap-4">
+        <IconeCirculo icon={icon} />
+        <div>
+          <h2 className="titulo-h1 text-xl text-ink">{titulo}</h2>
+          {descricao && <p className="mt-1 text-muted-foreground">{descricao}</p>}
+        </div>
+      </div>
       {children}
-    </div>
+    </section>
+  );
+}
+
+/** Lista com marcador de estrela. */
+export function ListaEstrela({ itens }: { itens: ReactNode[] }) {
+  return (
+    <ul className="space-y-2.5">
+      {itens.map((item, i) => (
+        <li key={i} className="flex gap-3 text-ink">
+          <Estrela className="mt-1 h-4 w-4 shrink-0 text-[#ffb600]" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Faixa escura de abertura da aba, com o cardapinho estrela. */
+export function Destaque({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <section className="cartao-escuro relative flex items-center gap-6 overflow-hidden p-6 sm:p-8">
+      <div className="relative z-10 flex-1">
+        <h2 className="titulo-h1 text-2xl">{titulo}</h2>
+        <div className="mt-2 max-w-2xl text-white/85">{children}</div>
+      </div>
+      <img
+        src="/brand/cardapinho-stars.webp"
+        alt=""
+        aria-hidden
+        className="hidden h-36 shrink-0 select-none drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)] sm:block"
+      />
+    </section>
   );
 }

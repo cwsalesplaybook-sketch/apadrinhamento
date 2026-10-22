@@ -13,16 +13,10 @@ import {
 import { Toaster } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { AuthPage } from "@/routes/auth";
-import { PainelPage } from "@/routes/painel";
-import { DuplasPage } from "@/routes/duplas";
-import { DuplaPage } from "@/routes/dupla";
-import { WeekliesPage } from "@/routes/weeklies";
-import { WeeklyPage } from "@/routes/weekly";
-import { HistoricoPage } from "@/routes/historico";
-import { TemplatesPage } from "@/routes/templates";
-import { PlaybookPage } from "@/routes/playbook";
-import { DailyPage } from "@/routes/daily";
-import { AnexosPage } from "@/routes/anexos";
+import { ContratacaoPage } from "@/routes/contratacao";
+import { TimePage } from "@/routes/time";
+import { VagaPage } from "@/routes/vaga";
+import { OnboardingPage } from "@/routes/onboarding";
 import "./styles.css";
 
 const queryClient = new QueryClient();
@@ -31,7 +25,7 @@ function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <img src="/brand/cardapinho-acenando.webp" alt="" aria-hidden className="mx-auto mb-4 h-40 select-none" />
+        <img src="/brand/cardapinho-stars.webp" alt="" aria-hidden className="mx-auto mb-4 h-40 select-none" />
         <h1 className="titulo-h1 text-7xl text-ink">404</h1>
         <h2 className="titulo-h2 mt-2 text-xl text-primary">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>
@@ -62,7 +56,7 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   beforeLoad: () => {
-    throw redirect({ to: "/painel" });
+    throw redirect({ to: "/contratacao" });
   },
 });
 
@@ -79,41 +73,23 @@ const authenticatedRoute = createRoute({
   component: Outlet,
 });
 
-const painelRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/painel", component: PainelPage });
-const duplasRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas", component: DuplasPage });
-const duplaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/duplas/$id", component: DuplaPage });
-const historicoRoute = createRoute({
+const contratacaoRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
-  path: "/historico",
-  component: HistoricoPage,
+  path: "/contratacao",
+  component: ContratacaoPage,
 });
-const templatesRoute = createRoute({
+const timeRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/time", component: TimePage });
+const vagaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/vaga", component: VagaPage });
+const onboardingRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
-  path: "/templates",
-  component: TemplatesPage,
-});
-const playbookRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: "/playbook",
-  component: PlaybookPage,
-});
-const dailyRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/daily", component: DailyPage });
-const anexosRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/anexo", component: AnexosPage });
-const weekliesRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: "/weeklies",
-  component: WeekliesPage,
-});
-const weeklyRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
-  path: "/weeklies/$id",
-  component: WeeklyPage,
+  path: "/onboarding",
+  component: OnboardingPage,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([painelRoute, duplasRoute, duplaRoute, historicoRoute, templatesRoute, playbookRoute, dailyRoute, anexosRoute, weekliesRoute, weeklyRoute]),
+  authenticatedRoute.addChildren([contratacaoRoute, timeRoute, vagaRoute, onboardingRoute]),
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });
