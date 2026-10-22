@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, ClipboardList, Copy, FileText, Megaphone, MessageSquareText } from "lucide-react";
+import { Check, ClipboardList, Copy, FileText, ChartNoAxesCombined, MessageSquareText } from "lucide-react";
 import { AppLayout, Destaque, Secao } from "@/components/AppLayout";
 
 const VAGAS = [
@@ -101,7 +101,7 @@ function BotaoCopiar({ texto }: { texto: string }) {
 export function VagaPage() {
   const [vaga, setVaga] = useState(0);
   return (
-    <AppLayout title="Forms da vaga" subtitle="Textos prontos para divulgar e formulário de inscrição" icon={Megaphone}>
+    <AppLayout title="Forms da vaga" subtitle="Textos prontos para divulgar e formulário de inscrição" icon={ChartNoAxesCombined}>
       <Destaque titulo="Divulgue em 3 passos">
         1. Crie o formulário no Google Forms com as perguntas abaixo. 2. Troque o [LINK DO FORMULÁRIO] pelo link dele.
         3. Publique o texto no WhatsApp, Instagram e LinkedIn.

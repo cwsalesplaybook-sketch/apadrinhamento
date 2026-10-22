@@ -1,8 +1,8 @@
 import { CalendarClock, Handshake, Network, Route, Users } from "lucide-react";
-import { AppLayout, Destaque, ListaEstrela, Secao } from "@/components/AppLayout";
+import { AppLayout, Destaque, ListaCoroa, Secao } from "@/components/AppLayout";
 
 const QUEM = [
-  { papel: "Você, representante estrela", texto: "Dono da operação. Define metas, contrata, acompanha o time e responde pelos clientes da sua carteira." },
+  { papel: "Você, representante valhalla", texto: "Dono da operação. Define metas, contrata, acompanha o time e responde pelos clientes da sua carteira." },
   { papel: "Seu time", texto: "Prospecção, vendas e implantação. Cada pessoa cuida de uma parte da jornada do cliente." },
   { papel: "Padrinho", texto: "Representante experiente da rede que apoia você em dúvidas de venda." },
   { papel: "PSM", texto: "Time da Cardápio Web que cuida das dúvidas de sistema e da implantação." },
@@ -64,7 +64,7 @@ export function TimePage() {
       </Secao>
 
       <Secao icon={CalendarClock} titulo="Rotina do time">
-        <ListaEstrela
+        <ListaCoroa
           itens={[
             "Alinhamento rápido diário (15 min): quem vai visitar, ligar ou implantar hoje.",
             "Revisão semanal de números: contatos feitos, reuniões, vendas e clientes implantados.",

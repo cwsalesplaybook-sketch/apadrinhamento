@@ -1,6 +1,6 @@
-# CW Stars
+# CW Valhalla
 
-O portal dos representantes estrela da Cardápio Web (antigo Radar dos Reps).
+O portal dos representantes valhalla da Cardápio Web (antes CW Stars e Radar dos Reps).
 
 Abas: Capacitações e materiais, Sobre o time, Forms da vaga e Onboarding. Login por e-mail e senha
 (Supabase Auth).

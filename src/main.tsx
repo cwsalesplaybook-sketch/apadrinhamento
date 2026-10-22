@@ -25,7 +25,7 @@ function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <img src="/brand/cardapinho-stars.webp" alt="" aria-hidden className="mx-auto mb-4 h-40 select-none" />
+        <img src="/brand/cardapinho-viking.webp" alt="" aria-hidden className="mx-auto mb-4 h-40 select-none" />
         <h1 className="titulo-h1 text-7xl text-ink">404</h1>
         <h2 className="titulo-h2 mt-2 text-xl text-primary">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>

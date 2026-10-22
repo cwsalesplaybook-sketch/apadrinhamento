@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, GraduationCap, LogOut, Megaphone, Rocket, User, Users, type LucideProps } from "lucide-react";
+import { ChartNoAxesCombined, ChevronDown, ChevronRight, GraduationCap, LogOut, Rocket, User, Users, type LucideProps } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Icone = ComponentType<LucideProps>;
@@ -9,7 +9,7 @@ type Icone = ComponentType<LucideProps>;
 export const NAV = [
   { to: "/capacitacoes", label: "Capacitações e materiais", icon: GraduationCap },
   { to: "/time", label: "Sobre o time", icon: Users },
-  { to: "/vaga", label: "Forms da vaga", icon: Megaphone },
+  { to: "/vaga", label: "Forms da vaga", icon: ChartNoAxesCombined },
   { to: "/onboarding", label: "Onboarding", icon: Rocket },
 ] as const;
 
@@ -18,11 +18,12 @@ async function sair(navigate: () => void) {
   navigate();
 }
 
-/** Estrela de 5 pontas usada como marca do CW Stars. */
-export function Estrela({ className = "", style }: { className?: string; style?: CSSProperties }) {
+/** Coroa usada como marca do CW Valhalla. */
+export function Coroa({ className = "", style }: { className?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} aria-hidden>
-      <path fill="currentColor" d="M12 2.2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+      <path fill="currentColor" d="M2.5 7.5l5 4 4.5-7 4.5 7 5-4-1.6 10.5H4.1z" />
+      <rect x="4" y="19" width="16" height="2.4" rx="1" fill="currentColor" />
     </svg>
   );
 }
@@ -36,9 +37,9 @@ function MenuLateral() {
           <img src="/brand/logo-cw-eminence.webp" alt="Cardápio Web" className="h-14 drop-shadow-lg" />
           <div className="menu-3d-marca mt-5 rounded-2xl px-4 py-3.5">
             <div className="titulo-h1 flex items-center gap-2 text-xl leading-none">
-              CW STARS <Estrela className="h-5 w-5 text-[#ffb600]" />
+              CW VALHALLA <Coroa className="h-5 w-5 text-[#ffb600]" />
             </div>
-            <p className="mt-1.5 text-xs leading-snug text-white/75">O portal dos representantes estrela.</p>
+            <p className="mt-1.5 text-xs leading-snug text-white/75">O portal dos representantes valhalla.</p>
           </div>
         </div>
         <nav className="relative z-10 mt-5 flex gap-1 overflow-x-auto px-3 pb-3 md:min-h-0 md:flex-col md:gap-0.5 md:overflow-x-hidden md:overflow-y-auto md:pb-0 [scrollbar-width:none]">
@@ -65,7 +66,7 @@ function MenuLateral() {
         </nav>
         <div className="relative z-10 mt-auto hidden md:block">
           <img
-            src="/brand/cardapinho-stars.webp"
+            src="/brand/cardapinho-viking.webp"
             alt=""
             aria-hidden
             className="pointer-events-none mx-auto hidden w-36 select-none [@media(min-height:820px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
@@ -191,13 +192,13 @@ export function Secao({
   );
 }
 
-/** Lista com marcador de estrela. */
-export function ListaEstrela({ itens }: { itens: ReactNode[] }) {
+/** Lista com marcador de coroa. */
+export function ListaCoroa({ itens }: { itens: ReactNode[] }) {
   return (
     <ul className="space-y-2.5">
       {itens.map((item, i) => (
         <li key={i} className="flex gap-3 text-ink">
-          <Estrela className="mt-1 h-4 w-4 shrink-0 text-[#ffb600]" />
+          <Coroa className="mt-1 h-4 w-4 shrink-0 text-[#ffb600]" />
           <span>{item}</span>
         </li>
       ))}
@@ -205,7 +206,7 @@ export function ListaEstrela({ itens }: { itens: ReactNode[] }) {
   );
 }
 
-/** Faixa escura de abertura da aba, com o cardapinho estrela. */
+/** Faixa escura de abertura da aba, com o cardapinho viking. */
 export function Destaque({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <section className="cartao-escuro relative flex items-center gap-6 overflow-hidden p-6 sm:p-8">
@@ -214,7 +215,7 @@ export function Destaque({ titulo, children }: { titulo: string; children: React
         <div className="mt-2 max-w-2xl text-white/85">{children}</div>
       </div>
       <img
-        src="/brand/cardapinho-stars.webp"
+        src="/brand/cardapinho-viking.webp"
         alt=""
         aria-hidden
         className="hidden h-36 shrink-0 select-none drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)] sm:block"

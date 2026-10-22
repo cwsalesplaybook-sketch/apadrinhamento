@@ -1,5 +1,5 @@
 import { BookOpen, CalendarClock, FolderOpen, GraduationCap, Lightbulb, PlayCircle } from "lucide-react";
-import { AppLayout, Destaque, ListaEstrela, Secao } from "@/components/AppLayout";
+import { AppLayout, Destaque, ListaCoroa, Secao } from "@/components/AppLayout";
 
 const TRILHA = [
   {
@@ -40,7 +40,7 @@ const MATERIAIS = [
 export function CapacitacoesPage() {
   return (
     <AppLayout title="Capacitações e materiais" subtitle="Tudo para você e o seu time venderem melhor" icon={GraduationCap}>
-      <Destaque titulo="Estrela que brilha não para de aprender">
+      <Destaque titulo="Valhalla de verdade não para de aprender">
         Siga a trilha de capacitação, participe das mentorias e use os materiais prontos com o seu time. Quem entra no
         seu time também começa por aqui.
       </Destaque>
@@ -92,7 +92,7 @@ export function CapacitacoesPage() {
       </Secao>
 
       <Secao icon={Lightbulb} titulo="Dicas para estudar com o time">
-        <ListaEstrela
+        <ListaCoroa
           itens={[
             "Separe 30 minutos por semana para um módulo da trilha com todo o time.",
             "Depois de cada módulo, faça um roleplay: alguém é o dono do restaurante.",
