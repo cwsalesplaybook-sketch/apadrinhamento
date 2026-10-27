@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
-import { Link, useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ChartNoAxesCombined, ChevronDown, ChevronRight, GraduationCap, LogOut, Rocket, User, Users, type LucideProps } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { type ComponentType, type CSSProperties, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { ChartNoAxesCombined, ChevronRight, GraduationCap, Rocket, Users, type LucideProps } from "lucide-react";
 
 type Icone = ComponentType<LucideProps>;
 
@@ -12,11 +10,6 @@ export const NAV = [
   { to: "/vaga", label: "Forms da vaga", icon: ChartNoAxesCombined },
   { to: "/onboarding", label: "Onboarding", icon: Rocket },
 ] as const;
-
-async function sair(navigate: () => void) {
-  await supabase.auth.signOut();
-  navigate();
-}
 
 /** Coroa usada como marca do CW Valhalla. */
 export function Coroa({ className = "", style }: { className?: string; style?: CSSProperties }) {
@@ -29,7 +22,6 @@ export function Coroa({ className = "", style }: { className?: string; style?: C
 }
 
 function MenuLateral() {
-  const router = useRouter();
   return (
     <div className="md:sticky md:top-0 md:h-screen md:w-72 md:shrink-0 md:p-5">
       <aside className="menu-3d relative flex flex-col overflow-visible text-white md:h-full">
@@ -69,58 +61,10 @@ function MenuLateral() {
             src="/brand/cardapinho-viking.webp"
             alt=""
             aria-hidden
-            className="pointer-events-none mx-auto hidden w-36 select-none [@media(min-height:820px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
+            className="pointer-events-none mx-auto hidden w-36 select-none pb-7 [@media(min-height:820px)]:block drop-shadow-[0_18px_22px_rgba(10,0,30,0.55)]"
           />
-          <button
-            onClick={() => sair(() => router.navigate({ to: "/auth" }))}
-            className="flex w-full items-center gap-4 px-7 pb-7 pt-4 text-[15px] font-bold text-white/80 hover:text-white"
-          >
-            <LogOut className="h-6 w-6" strokeWidth={1.9} /> Sair
-          </button>
         </div>
       </aside>
-    </div>
-  );
-}
-
-function useFora(aberto: boolean, fechar: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!aberto) return;
-    const onClick = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && fechar();
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [aberto, fechar]);
-  return ref;
-}
-
-function MenuUsuario() {
-  const router = useRouter();
-  const [aberto, setAberto] = useState(false);
-  const ref = useFora(aberto, () => setAberto(false));
-  const { data: email } = useQuery({
-    queryKey: ["usuario"],
-    queryFn: async () => (await supabase.auth.getUser()).data.user?.email ?? "",
-  });
-  return (
-    <div ref={ref} className="relative">
-      <button onClick={() => setAberto(!aberto)} className="flex items-center gap-1.5" aria-label="Conta">
-        <span className="avatar-3d flex h-11 w-11 items-center justify-center rounded-full text-white">
-          <User className="h-5 w-5" />
-        </span>
-        <ChevronDown className="h-4 w-4 text-ink" />
-      </button>
-      {aberto && (
-        <div className="cartao absolute right-0 z-40 mt-2 w-64 p-2">
-          <div className="truncate px-3 py-2 text-sm text-muted-foreground">{email}</div>
-          <button
-            onClick={() => sair(() => router.navigate({ to: "/auth" }))}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink hover:bg-accent"
-          >
-            <LogOut className="h-4 w-4" /> Sair
-          </button>
-        </div>
-      )}
     </div>
   );
 }
@@ -158,7 +102,6 @@ export function AppLayout({
               {subtitle && <p className="mt-1.5 text-[17px] text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
-          <MenuUsuario />
         </header>
         <div className="max-w-5xl space-y-6">{children}</div>
       </main>

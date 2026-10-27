@@ -11,8 +11,6 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { supabase } from "@/lib/supabase";
-import { AuthPage } from "@/routes/auth";
 import { CapacitacoesPage } from "@/routes/capacitacoes";
 import { TimePage } from "@/routes/time";
 import { VagaPage } from "@/routes/vaga";
@@ -60,28 +58,24 @@ const indexRoute = createRoute({
   },
 });
 
-const authRoute = createRoute({ getParentRoute: () => rootRoute, path: "/auth", component: AuthPage });
-
-const authenticatedRoute = createRoute({
+// Sem login: links antigos para /auth caem direto no portal.
+const authRoute = createRoute({
   getParentRoute: () => rootRoute,
-  id: "_authenticated",
-  beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+  path: "/auth",
+  beforeLoad: () => {
+    throw redirect({ to: "/capacitacoes" });
   },
-  component: Outlet,
 });
 
 const capacitacoesRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
+  getParentRoute: () => rootRoute,
   path: "/capacitacoes",
   component: CapacitacoesPage,
 });
-const timeRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/time", component: TimePage });
-const vagaRoute = createRoute({ getParentRoute: () => authenticatedRoute, path: "/vaga", component: VagaPage });
+const timeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/time", component: TimePage });
+const vagaRoute = createRoute({ getParentRoute: () => rootRoute, path: "/vaga", component: VagaPage });
 const onboardingRoute = createRoute({
-  getParentRoute: () => authenticatedRoute,
+  getParentRoute: () => rootRoute,
   path: "/onboarding",
   component: OnboardingPage,
 });
@@ -89,7 +83,10 @@ const onboardingRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
-  authenticatedRoute.addChildren([capacitacoesRoute, timeRoute, vagaRoute, onboardingRoute]),
+  capacitacoesRoute,
+  timeRoute,
+  vagaRoute,
+  onboardingRoute,
 ]);
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });
