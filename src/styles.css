@@ -1,395 +1,265 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Tipografia oficial (manual de identidade visual Cardápio Web 2023):
-   Museo Sans Rounded 1000 para H1, 500 para texto corrido e subtítulos. */
-@font-face {
-  font-family: "Museo Sans Rounded";
-  src: url("./assets/fonts/museosansrounded-500.woff2") format("woff2");
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Museo Sans Rounded";
-  src: url("./assets/fonts/museosansrounded-700.woff2") format("woff2");
-  font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Museo Sans Rounded";
-  src: url("./assets/fonts/museosansrounded-900.woff2") format("woff2");
-  font-weight: 900;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Museo Sans Rounded";
-  src: url("./assets/fonts/museosansrounded-1000.woff2") format("woff2");
-  font-weight: 1000;
-  font-display: swap;
-}
-
-/* Paleta oficial: Purple Heart #A543FA, Eminence #59327A, Carnation #FF5959,
-   Selective Yellow #FFB600, Magnolia #F4EDF7. Os demais tons são variações delas. */
+/* Tema escuro do playbook da jornada: roxo profundo, dourado nos títulos.
+   Fredoka nos títulos, Plus Jakarta Sans no texto (Google Fonts, no index.html). */
 :root {
-  --radius: 0.875rem;
-  --background: #f4edf7;
-  --foreground: #59327a;
-  --card: #ffffff;
-  --card-foreground: #59327a;
-  --popover: #ffffff;
-  --popover-foreground: #59327a;
-  --primary: #a543fa;
-  --primary-foreground: #ffffff;
-  --secondary: #f4edf7;
-  --secondary-foreground: #59327a;
-  --muted: #efe5f5;
-  --muted-foreground: #8b6ea6;
-  --accent: #f4edf7;
-  --accent-foreground: #59327a;
-  --destructive: #ff5959;
-  --destructive-foreground: #ffffff;
-  --success: #a543fa;
-  --success-foreground: #ffffff;
-  --warning: #ffb600;
-  --warning-foreground: #59327a;
-  --ink: #59327a;
-  --ink-foreground: #f4edf7;
-  --border: #e8dcef;
-  --input: #ddcbe9;
-  --ring: #a543fa;
-  --chart-1: #a543fa;
-  --chart-2: #ffb600;
-  --chart-3: #ff5959;
-  --chart-4: #59327a;
-  --chart-5: #f4edf7;
-  --sidebar: #59327a;
-  --sidebar-foreground: #f4edf7;
-  --sidebar-primary: #a543fa;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #6a3f90;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #6a3f90;
-  --sidebar-ring: #ffb600;
+  --fundo: #130821;
+  --fundo-2: #1c0c31;
+  --texto: #faf6ef;
+  --texto-suave: rgb(250 246 239 / 0.66);
+  --texto-fraco: rgb(250 246 239 / 0.45);
+  --cartao: rgb(255 255 255 / 0.035);
+  --cartao-forte: rgb(255 255 255 / 0.06);
+  --borda: rgb(255 255 255 / 0.09);
+  --roxo: #a543fa;
+  --roxo-claro: #c99bff;
+  --dourado: #ffb84d;
+  --laranja: #ff9a3d;
+  --verde: #4ade80;
+  --vermelho: #ff6b6b;
 }
 
 @theme inline {
-  --font-sans: "Museo Sans Rounded", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Museo Sans Rounded", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-ink: var(--ink);
-  --color-ink-foreground: var(--ink-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+  --color-fundo: var(--fundo);
+  --color-fundo-2: var(--fundo-2);
+  --color-texto: var(--texto);
+  --color-suave: var(--texto-suave);
+  --color-fraco: var(--texto-fraco);
+  --color-cartao: var(--cartao);
+  --color-cartao-forte: var(--cartao-forte);
+  --color-borda: var(--borda);
+  --color-roxo: var(--roxo);
+  --color-roxo-claro: var(--roxo-claro);
+  --color-dourado: var(--dourado);
+  --color-laranja: var(--laranja);
+  --color-verde: var(--verde);
+  --color-vermelho: var(--vermelho);
 }
 
-@layer base {
-  * {
-    border-color: var(--border);
-  }
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans);
-    font-weight: 500;
-  }
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-display);
-    letter-spacing: -0.01em;
-  }
+html {
+  color-scheme: dark;
 }
 
-@layer components {
-  .num {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
-  }
-  /* H1 do manual: Museo Sans Rounded 1000 */
-  .titulo-h1 {
-    font-weight: 1000;
-    letter-spacing: -0.01em;
-  }
-  /* H2 do manual: Museo Sans Rounded 500 itálico, para subtítulos e descrições de títulos */
-  .titulo-h2 {
-    font-weight: 500;
-    font-style: italic;
-  }
-  /* Rótulo de seção no estilo do manual ("LOGOTIPO - PRINCIPAL"): caixa alta e espaçada */
-  .rotulo {
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-  }
-  /* ---------- Layout "Painel do ciclo" (mockup) ---------- */
-  .fundo-app {
-    background:
-      radial-gradient(120% 60% at 0% 100%, rgba(89, 50, 122, 0.55) 0%, rgba(124, 58, 237, 0.18) 28%, transparent 46%),
-      radial-gradient(60% 50% at 100% 0%, rgba(165, 67, 250, 0.1) 0%, transparent 60%),
-      linear-gradient(180deg, #f6f1fb 0%, #efe7f8 100%);
-    background-attachment: fixed;
-  }
-
-  .cartao {
-    background: #ffffff;
-    border: 1px solid #ece3f6;
-    border-radius: 22px;
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.9) inset,
-      0 18px 40px -22px rgba(89, 50, 122, 0.35),
-      0 4px 10px -6px rgba(89, 50, 122, 0.12);
-  }
-
-  .cartao-escuro {
-    border-radius: 22px;
-    color: #ffffff;
-    background:
-      radial-gradient(90% 80% at 100% 100%, rgba(165, 67, 250, 0.35) 0%, transparent 60%),
-      linear-gradient(150deg, #4a1d8f 0%, #2c0f5e 100%);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.18) inset,
-      0 22px 44px -20px rgba(44, 15, 94, 0.75);
-  }
-
-  .tile-3d {
-    background: linear-gradient(145deg, #b45cff 0%, #8b2ff7 55%, #6d1fd6 100%);
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.35) inset,
-      0 -4px 10px rgba(60, 10, 120, 0.35) inset,
-      0 14px 26px -10px rgba(124, 47, 247, 0.75);
-  }
-  .tile-3d-escuro {
-    background: linear-gradient(145deg, #9b4dff 0%, #6d28d9 100%);
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.3) inset,
-      0 10px 20px -8px rgba(0, 0, 0, 0.45);
-  }
-
-  .avatar-3d {
-    background: linear-gradient(145deg, #6b3fa0 0%, #3b1770 100%);
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.25) inset,
-      0 8px 16px -6px rgba(59, 23, 112, 0.6);
-  }
-
-  .icone-circulo {
-    width: 3rem;
-    height: 3rem;
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.9) inset,
-      0 -3px 6px rgba(89, 50, 122, 0.08) inset,
-      0 8px 16px -10px rgba(89, 50, 122, 0.45);
-  }
-  .icone-circulo-roxo {
-    color: #7c3aed;
-    background: linear-gradient(145deg, #f6efff 0%, #e6d6fb 100%);
-  }
-  .icone-circulo-verde {
-    color: #0f9f7a;
-    background: linear-gradient(145deg, #eafbf5 0%, #c9f1e4 100%);
-  }
-
-  .botao-chevron {
-    display: flex;
-    height: 1.75rem;
-    width: 1.75rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    background: #f4edfb;
-    color: #7c3aed;
-  }
-
-  .seletor-3d {
-    background: #ffffff;
-    border: 1px solid #e6dcf2;
-    border-radius: 14px;
-    box-shadow: 0 10px 22px -14px rgba(89, 50, 122, 0.45);
-  }
-
-  /* ---------- Menu 3D ---------- */
-  .menu-3d {
-    border-radius: 0 0 28px 28px;
-    background:
-      radial-gradient(120% 50% at 0% 0%, rgba(165, 67, 250, 0.35) 0%, transparent 55%),
-      radial-gradient(90% 40% at 100% 100%, rgba(124, 58, 237, 0.35) 0%, transparent 60%),
-      linear-gradient(170deg, #43198a 0%, #2d0f63 45%, #1c0842 100%);
-    box-shadow:
-      1px 1px 0 rgba(255, 255, 255, 0.16) inset,
-      -1px -1px 0 rgba(0, 0, 0, 0.35) inset,
-      0 30px 60px -18px rgba(28, 8, 66, 0.75);
-  }
-  .menu-3d-marca {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.18) inset,
-      0 14px 24px -14px rgba(0, 0, 0, 0.6);
-  }
-  .menu-3d-item {
-    transition:
-      background-color 0.15s,
-      transform 0.2s;
-  }
-  .menu-3d-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
-  .menu-3d-ativo,
-  .menu-3d-ativo:hover {
-    background: linear-gradient(135deg, #b25bff 0%, #8b2ff7 55%, #7322e6 100%);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.4) inset,
-      0 -3px 8px rgba(60, 10, 120, 0.35) inset,
-      0 16px 28px -10px rgba(139, 47, 247, 0.85);
-  }
-
-  @media (min-width: 768px) {
-    .menu-3d {
-      border-radius: 30px;
-    }
-    .menu-3d-ativo {
-      margin-right: -18px;
-    }
-  }
-
-  .pattern-cw {
-    background-color: var(--ink);
-    background-image: url("/brand/pattern-eminence.webp");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--fundo);
+  background-image:
+    radial-gradient(60rem 30rem at 0% 0%, rgb(120 40 200 / 0.38), transparent 70%),
+    radial-gradient(50rem 30rem at 100% 35%, rgb(255 150 60 / 0.07), transparent 70%),
+    radial-gradient(50rem 30rem at 30% 100%, rgb(200 40 110 / 0.12), transparent 70%);
+  background-attachment: fixed;
+  color: var(--texto);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer components {
-  .botao-3d {
-    background: linear-gradient(145deg, #b45cff 0%, #8b2ff7 60%, #7322e6 100%);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.35) inset,
-      0 -2px 6px rgba(60, 10, 120, 0.3) inset,
-      0 10px 20px -10px rgba(124, 47, 247, 0.8);
-  }
+h1,
+h2,
+h3,
+.titulo {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-/* ---------- Tela de login CW Valhalla (mockup) ---------- */
-@layer components {
-  .valhalla-pagina {
-    background: #1a0838;
-  }
-  /* Fundo do castelo + escurecido à esquerda para o texto ficar legível */
-  .valhalla-marca {
-    background:
-      linear-gradient(90deg, rgba(26, 8, 56, 0.88) 0%, rgba(26, 8, 56, 0.55) 32%, rgba(26, 8, 56, 0) 58%),
-      linear-gradient(0deg, rgba(26, 8, 56, 0.35) 0%, transparent 30%),
-      #1a0838 url("/brand/fundo-valhalla.webp") 88% center / cover no-repeat;
-  }
-  .valhalla-lado-form {
-    background:
-      radial-gradient(40% 32% at 96% 6%, rgba(214, 190, 250, 0.6) 0%, transparent 70%),
-      radial-gradient(45% 32% at 8% 104%, rgba(214, 190, 250, 0.5) 0%, transparent 70%),
-      #f4eefc;
-  }
-  @media (min-width: 1024px) {
-    .valhalla-lado-form {
-      border-bottom-left-radius: 64px;
-    }
-  }
-  .valhalla-selo {
-    background: rgba(26, 8, 56, 0.6);
-    border: 1.5px solid rgba(255, 182, 0, 0.55);
-  }
-  .valhalla-cw {
-    background: linear-gradient(180deg, #ffffff 0%, #e9e4f0 55%, #b9b1c6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 4px 0 rgba(20, 5, 45, 0.6));
-  }
-  .valhalla-titulo {
-    font-family: var(--font-display);
-    font-weight: 1000;
-    font-style: italic;
-    letter-spacing: -0.02em;
-    transform: skewX(-6deg) rotate(-2deg);
-    transform-origin: left bottom;
-    background: linear-gradient(180deg, #ffe48a 0%, #ffbf1f 45%, #d98a00 75%, #a86200 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 5px 0 rgba(40, 12, 0, 0.55)) drop-shadow(0 0 18px rgba(255, 170, 0, 0.35));
-  }
-  .valhalla-pilula {
-    background: rgba(26, 8, 56, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(4px);
-  }
-  .valhalla-mao {
-    font-family: "Caveat", cursive;
-    font-weight: 600;
-  }
-  .valhalla-botao {
-    background: linear-gradient(180deg, #8a3cf6 0%, #6c22e3 100%);
-    box-shadow: 0 16px 30px -14px rgba(108, 34, 227, 0.85);
-  }
-  .login-cartao {
-    border-radius: 26px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.95);
-    box-shadow:
-      0 1px 0 #ffffff inset,
-      0 40px 80px -40px rgba(89, 50, 122, 0.35),
-      0 10px 24px -16px rgba(89, 50, 122, 0.18);
-    backdrop-filter: blur(10px);
-  }
-  .campo-login {
-    border-radius: 14px;
-    background: #ffffff;
-    border: 1.5px solid #e4daf2;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .campo-login:focus-within {
-    border-color: #a543fa;
-    box-shadow: 0 0 0 4px rgba(165, 67, 250, 0.15);
-  }
+/* Título grande de página, com o degradê dourado da referência. */
+.titulo-ouro {
+  background: linear-gradient(100deg, #ffc46b 0%, #ff9a3d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sobretitulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--roxo-claro);
+}
+
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 1rem;
+}
+
+.cartao-link {
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+.cartao-link:hover {
+  background: var(--cartao-forte);
+  border-color: rgb(201 155 255 / 0.35);
+  transform: translateY(-1px);
+}
+
+.icone-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgb(165 67 250 / 0.18);
+  color: var(--roxo-claro);
+}
+
+.logo-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.8rem;
+  background: linear-gradient(160deg, #b45cff, #7b2fd0);
+  box-shadow: inset 0 -4px 0 #d8315b;
+  color: #fff;
+}
+
+.pilula {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: rgb(255 255 255 / 0.05);
+  padding: 0.2rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pilula-roxa {
+  background: rgb(165 67 250 / 0.18);
+  border-color: rgb(165 67 250 / 0.4);
+  color: var(--roxo-claro);
+}
+.pilula-ouro {
+  background: rgb(255 154 61 / 0.14);
+  border-color: rgb(255 154 61 / 0.45);
+  color: var(--dourado);
+}
+.pilula-verde {
+  background: rgb(74 222 128 / 0.12);
+  border-color: rgb(74 222 128 / 0.4);
+  color: var(--verde);
+}
+.pilula-vermelha {
+  background: rgb(255 107 107 / 0.12);
+  border-color: rgb(255 107 107 / 0.4);
+  color: var(--vermelho);
+}
+
+.alerta-ouro {
+  border: 1px solid rgb(255 154 61 / 0.35);
+  background: linear-gradient(90deg, rgb(255 154 61 / 0.1), rgb(255 154 61 / 0.03));
+  border-radius: 1rem;
+}
+
+.nav-item {
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.nav-item:hover {
+  color: var(--texto);
+}
+.nav-ativo {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--texto);
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.7rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+.botao:disabled {
+  opacity: 0.5;
+}
+.botao-primario {
+  background: var(--roxo);
+  color: #fff;
+}
+.botao-primario:hover {
+  background: #b25dff;
+}
+.botao-fantasma {
+  border: 1px solid var(--borda);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--texto);
+}
+.botao-fantasma:hover {
+  background: rgb(255 255 255 / 0.09);
+}
+.botao-perigo {
+  color: var(--vermelho);
+}
+.botao-perigo:hover {
+  background: rgb(255 107 107 / 0.1);
+}
+
+.campo {
+  width: 100%;
+  border-radius: 0.7rem;
+  border: 1px solid var(--borda);
+  background: rgb(0 0 0 / 0.25);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--texto);
+  outline: none;
+}
+.campo:focus {
+  border-color: var(--roxo);
+  box-shadow: 0 0 0 3px rgb(165 67 250 / 0.25);
+}
+.campo option {
+  background: var(--fundo-2);
+}
+
+.tabela th {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  white-space: nowrap;
+}
+.tabela td {
+  padding: 0.75rem 0.9rem;
+  border-top: 1px solid var(--borda);
+  vertical-align: top;
+  font-size: 0.875rem;
+}
+.tabela tbody tr {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tabela tbody tr:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
 }

@@ -7,3 +7,4 @@ dist
 .radar-local.json
 .radar-local-ciclos/
 .radar-local-*.json
+.jornada-local.json
