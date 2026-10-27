@@ -26,14 +26,14 @@ export function Modal({ titulo, onFechar, children }: { titulo: string; onFechar
     };
   }, [onFechar]);
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={onFechar}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-texto/40 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={onFechar}>
       <div
         className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-2xl border border-borda bg-fundo-2 shadow-2xl sm:rounded-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4 border-b border-borda px-5 py-4">
           <h2 className="text-xl">{titulo}</h2>
-          <button onClick={onFechar} className="rounded-lg p-1.5 text-suave hover:bg-white/10" aria-label="Fechar">
+          <button onClick={onFechar} className="rounded-lg p-1.5 text-suave hover:bg-lavanda" aria-label="Fechar">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -78,7 +78,7 @@ function Campo({ coluna, valor, onMudar }: { coluna: Coluna; valor: string; onMu
               key={o}
               type="button"
               onClick={() => onMudar(o)}
-              className={`botao flex-1 ${valor === o ? (o === "Sim" ? "bg-verde/20 text-verde" : "bg-vermelho/15 text-vermelho") : "botao-fantasma"}`}
+              className={`botao flex-1 ${valor === o ? (o === "Sim" ? "bg-verde/15 text-verde" : "bg-vermelho/10 text-vermelho") : "botao-fantasma"}`}
             >
               {o}
             </button>
@@ -107,17 +107,20 @@ function Campo({ coluna, valor, onMudar }: { coluna: Coluna; valor: string; onMu
 export function EditorLinha({
   tabela,
   linha,
+  inicial,
   titulo,
   onFechar,
 }: {
   tabela: TabelaId;
   linha: Linha | null;
+  /** Valores já preenchidos de um registro novo. */
+  inicial?: Record<string, string>;
   titulo: string;
   onFechar: () => void;
 }) {
   const colunas = COLUNAS[tabela];
   const nova = !linha;
-  const [form, setForm] = useState<Linha>(() => linha ?? { id: novoId() });
+  const [form, setForm] = useState<Linha>(() => linha ?? { ...inicial, id: novoId() });
   const alterar = useAlterar();
 
   function mudar(chave: string, v: string) {

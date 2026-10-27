@@ -33,7 +33,7 @@ const rootRoute = createRootRoute({
   component: () => (
     <>
       <Outlet />
-      <Toaster richColors theme="dark" position="top-right" />
+      <Toaster richColors position="top-right" />
     </>
   ),
 });

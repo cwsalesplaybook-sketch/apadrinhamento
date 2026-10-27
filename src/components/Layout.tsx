@@ -1,18 +1,32 @@
 import type { ComponentType, ReactNode } from "react";
-import { Link, Outlet } from "@tanstack/react-router";
-import { Clock3, Lock, type LucideProps } from "lucide-react";
-import { useDados } from "@/lib/trilha";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import {
+  BarChart3,
+  Bell,
+  CalendarDays,
+  ChevronDown,
+  ChevronRight,
+  House,
+  Lock,
+  Map as Mapa,
+  Rocket,
+  Star,
+  Trophy,
+  User,
+  type LucideProps,
+} from "lucide-react";
+import { contatos, useDados } from "@/lib/trilha";
 
 type Icone = ComponentType<LucideProps>;
 
 export const NAV = [
-  { to: "/", label: "Início" },
-  { to: "/jornada", label: "Jornada e ABC" },
-  { to: "/niveis", label: "Níveis" },
-  { to: "/estrelas", label: "Estrelas" },
-  { to: "/cronograma", label: "Cronograma" },
-  { to: "/planejamento", label: "Planejamento" },
-  { to: "/trilha", label: "Trilha da aceleração" },
+  { to: "/", label: "Visão geral", icon: House },
+  { to: "/jornada", label: "Jornada e ABC", icon: Mapa },
+  { to: "/niveis", label: "Níveis e benefícios", icon: Trophy },
+  { to: "/estrelas", label: "Representantes Estrelas", icon: Star },
+  { to: "/cronograma", label: "Cronograma", icon: CalendarDays },
+  { to: "/planejamento", label: "Planejamento", icon: BarChart3 },
+  { to: "/trilha", label: "Aceleração de vendas", icon: Rocket },
 ] as const;
 
 /** Coroa da marca Representantes. */
@@ -26,91 +40,118 @@ export function Coroa({ className = "" }: { className?: string }) {
 
 function Marca() {
   return (
-    <Link to="/" className="flex items-center gap-3">
-      <span className="logo-tile h-10 w-10 shrink-0">
-        <Coroa className="h-5 w-5" />
+    <Link to="/" className="flex items-center gap-3 text-white">
+      <span className="logo-tile h-12 w-12 shrink-0">
+        <Coroa className="h-6 w-6" />
       </span>
       <span className="leading-tight">
-        <span className="titulo block text-[17px] font-semibold">Cardápio Web</span>
-        <span className="block text-[10px] font-bold tracking-[0.25em] text-suave">REPRESENTANTES</span>
+        <span className="titulo block text-xl">Cardápio Web</span>
+        <span className="block text-[11px] font-bold tracking-[0.28em] text-white/75">REPRESENTANTES</span>
       </span>
     </Link>
   );
 }
 
-function ultimaAtualizacao(iso: string | null | undefined) {
-  if (!iso) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" }).format(new Date(iso));
+function MenuLateral() {
+  return (
+    <aside className="menu-lateral text-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-[268px] lg:flex-col">
+      <div className="flex items-center justify-between px-5 py-4 lg:px-6 lg:pt-7">
+        <Marca />
+      </div>
+      <nav className="sem-barra flex gap-1 overflow-x-auto px-3 pb-3 lg:mt-6 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:px-4">
+        {NAV.map(({ to, label, icon: I }) => (
+          <Link key={to} to={to} className="menu-item" activeProps={{ className: "menu-ativo" }} activeOptions={{ exact: to === "/" }}>
+            <I className="h-5 w-5 shrink-0" strokeWidth={1.8} />
+            {label}
+          </Link>
+        ))}
+      </nav>
+      <div className="mt-auto hidden p-5 lg:block">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-6">
+          <Coroa className="h-8 w-8 text-amarelo" />
+          <p className="mao mt-2 text-[34px] leading-[0.95] text-white">
+            Grandes
+            <br />
+            Representantes
+            <br />
+            Constroem
+            <br />
+            Grandes
+            <br />
+            Histórias.
+          </p>
+          <span className="mt-2 block h-1 w-20 -rotate-6 rounded-full bg-amarelo" />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Topo() {
+  const caminho = useRouterState({ select: (s) => s.location.pathname });
+  const atual = NAV.find((n) => n.to === caminho) ?? NAV[0];
+  const { data } = useDados();
+  // Sino: follows atrasados ou para hoje.
+  const pendentes = data
+    ? contatos(data.tabelas.abc, data.tabelas.frente).filter((c) => c.diasAteProximo != null && c.diasAteProximo <= 0).length
+    : 0;
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-borda pb-4">
+      <nav className="flex items-center gap-2 text-sm text-suave">
+        <span className="hidden sm:inline">Programa de Representantes</span>
+        <ChevronRight className="hidden h-4 w-4 sm:block" />
+        <span className="border-b-2 border-roxo pb-0.5 font-bold text-texto">{atual.label}</span>
+      </nav>
+      <div className="flex items-center gap-4">
+        <Link to="/" className="relative rounded-full p-2 text-suave hover:bg-lavanda" title={`${pendentes} follow(s) para hoje ou atrasados`}>
+          <Bell className="h-5 w-5" />
+          {pendentes > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-vermelho px-1 text-[10px] font-black text-white">
+              {pendentes}
+            </span>
+          )}
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#a35cff] to-roxo text-white">
+            <User className="h-4 w-4" />
+          </span>
+          <span className="hidden text-sm font-bold sm:inline">Olá, Representante!</span>
+          <ChevronDown className="hidden h-4 w-4 text-suave sm:block" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function Layout() {
-  const { data } = useDados();
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-borda bg-fundo/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-          <Marca />
-          <nav className="sem-barra -mx-1 flex flex-1 gap-1 overflow-x-auto px-1 lg:justify-end">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`nav-item ${item.to === "/trilha" ? "text-dourado" : ""}`}
-                activeProps={{ className: "nav-ativo" }}
-                activeOptions={{ exact: item.to === "/" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+    <div className="min-h-screen lg:pl-[268px]">
+      <MenuLateral />
+      <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-8 lg:py-7">
+        <Topo />
+        <div className="pt-7">
+          <Outlet />
         </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
-        <Outlet />
       </main>
-
-      <footer className="border-t border-borda bg-black/20">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
-          <div>
-            <Marca />
-            <p className="mt-4 font-semibold text-dourado">Grandes representantes constroem grandes histórias.</p>
-          </div>
-          <div>
-            <p className="sobretitulo !text-suave">Documento</p>
-            <p className="mt-3 text-sm text-suave">Jornada do Representante · versão 1.0 · Em validação</p>
-            <p className="mt-1 text-sm text-suave">Setor de Representantes</p>
-          </div>
-          <div>
-            <p className="sobretitulo !text-suave">Uso interno</p>
-            <p className="mt-3 text-sm text-suave">
-              Material de apoio ao time de representantes da Cardápio Web. Os cargos citados são títulos do programa, não cargos da empresa.
-            </p>
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-suave">
-              <Clock3 className="h-4 w-4 text-roxo-claro" /> Última atualização: {ultimaAtualizacao(data?.atualizadoEm)}
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
 
 /* ---------- blocos das páginas ---------- */
 
-export function CabecalhoPagina({ sobre, titulo, children }: { sobre: string; titulo: string; children?: ReactNode }) {
+export function CabecalhoPagina({ sobre, titulo, children }: { sobre: string; titulo: ReactNode; children?: ReactNode }) {
   return (
-    <div className="mb-10">
+    <div className="mb-8">
       <p className="sobretitulo">{sobre}</p>
-      <h1 className="titulo-ouro mt-3 text-4xl sm:text-5xl">{titulo}</h1>
-      {children && <div className="mt-4 max-w-3xl text-[17px] leading-relaxed text-suave">{children}</div>}
+      <h1 className="titulo-ouro mt-2 text-4xl sm:text-[46px] sm:leading-[1.05]">{titulo}</h1>
+      {children && <div className="mt-3 max-w-3xl text-lg leading-relaxed text-suave">{children}</div>}
     </div>
   );
 }
 
 export function Secao({ titulo, descricao, selo, children }: { titulo: string; descricao?: string; selo?: string; children: ReactNode }) {
   return (
-    <section className="mt-12">
+    <section className="mt-10">
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-2xl sm:text-[28px]">{titulo}</h2>
         {selo && <span className="pilula pilula-ouro">{selo}</span>}
@@ -127,11 +168,11 @@ export function Cartao({ titulo, children, interno, icon: I }: { titulo: string;
     <div className="cartao flex flex-col p-5">
       <div className="flex items-start gap-3">
         {I && (
-          <span className="icone-tile h-9 w-9 shrink-0">
-            <I className="h-[18px] w-[18px]" />
+          <span className="icone-tile h-10 w-10 shrink-0">
+            <I className="h-5 w-5" />
           </span>
         )}
-        <h3 className="text-[17px] leading-snug">{titulo}</h3>
+        <h3 className="pt-1 text-[17px] leading-snug">{titulo}</h3>
       </div>
       {children && <div className="mt-2 text-sm leading-relaxed text-suave">{children}</div>}
       {interno && (
@@ -162,7 +203,7 @@ export function Fluxo() {
     <Grade>
       {FLUXO.map(([titulo, texto], i) => (
         <div key={titulo} className="cartao flex gap-4 p-5">
-          <span className="titulo text-3xl font-semibold text-roxo">{String(i + 1).padStart(2, "0")}</span>
+          <span className="titulo text-3xl text-roxo">{String(i + 1).padStart(2, "0")}</span>
           <div>
             <h3 className="text-[17px] leading-snug">{titulo}</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-suave">{texto}</p>

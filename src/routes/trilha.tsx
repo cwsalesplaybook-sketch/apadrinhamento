@@ -6,8 +6,10 @@ import {
   ETAPAS_ABC,
   ativou,
   brParaIso,
+  contatos,
   corEtapa,
   cursosFaltando,
+  haQuanto,
   hojeBR,
   situacaoCursos,
   tempoDesde,
@@ -73,11 +75,11 @@ function Distribuicao({ abc }: { abc: Linha[] }) {
   return (
     <div className="cartao mt-4 p-5">
       <p className="sobretitulo !text-fraco">Reps por etapa do ABC</p>
-      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-white/5">
+      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-lavanda">
         {contagem.map(([e, n], i) => (
           <div
             key={e}
-            className={`${cores[corEtapa(e)]} ${i ? "border-l-2 border-fundo" : ""}`}
+            className={`${cores[corEtapa(e)]} ${i ? "border-l-2 border-white" : ""}`}
             style={{ width: `${(n / abc.length) * 100}%`, opacity: e === "Reunião de Apresentação" ? 0.65 : 1 }}
             title={`${e}: ${n}`}
           />
@@ -113,6 +115,7 @@ export function TrilhaPage() {
   const ativados = abc.filter((l) => ativou(l.etapa)).length;
   const proximos1a1 = (t?.frente ?? []).filter((l) => brParaIso(l.data) >= hojeIso).length;
   const semCurso = (t?.cursos ?? []).filter((l) => cursosFaltando(l).length > 0).length;
+  const porId = new Map(contatos(abc, t?.frente ?? []).map((c) => [c.rep.id, c]));
   // 1:1s mais recentes primeiro.
   const frente = [...(t?.frente ?? [])].sort((a, b) => (brParaIso(b.data) + b.horario).localeCompare(brParaIso(a.data) + a.horario));
 
@@ -140,7 +143,7 @@ export function TrilhaPage() {
               key={id}
               onClick={() => trocar(id)}
               className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-bold whitespace-nowrap transition-colors ${
-                aba === id ? "border-dourado text-texto" : "border-transparent text-suave hover:text-texto"
+                aba === id ? "border-roxo text-texto" : "border-transparent text-suave hover:text-texto"
               }`}
             >
               {rotulo}
@@ -155,7 +158,24 @@ export function TrilhaPage() {
             titulo="Rep no ABC"
             linhas={abc}
             filtro={{ chave: "etapa", opcoes: ETAPAS_ABC }}
-            extras={[{ rotulo: "Tempo na etapa", depoisDe: "etapa", valor: (l) => <span className="text-suave">{tempoDesde(l.desde) || "—"}</span> }]}
+            extras={[
+              { rotulo: "Tempo na etapa", depoisDe: "etapa", valor: (l) => <span className="text-suave">{tempoDesde(l.desde) || "—"}</span> },
+              {
+                rotulo: "Follow",
+                depoisDe: "etapa",
+                valor: (l) => {
+                  const c = porId.get(l.id);
+                  if (!c) return null;
+                  const alerta = c.diasSemContato == null || c.diasSemContato >= 7;
+                  return (
+                    <span className="block text-xs whitespace-nowrap">
+                      <span className={`font-black ${alerta ? "text-vermelho" : ""}`}>{haQuanto(c.diasSemContato)}</span>
+                      <span className="block text-suave">próx.: {c.proximo || "—"}</span>
+                    </span>
+                  );
+                },
+              },
+            ]}
           />
         )}
         {aba === "ativados" && <TabelaEditavel tabela="ativados" titulo="Representante" linhas={t?.ativados ?? []} />}
